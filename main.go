@@ -227,7 +227,7 @@ func main() {
 		// update player correct
 		if amountInt > 0 {
 			playerCorrect[playerName] = append(playerCorrect[playerName], int64(questionNumber))
-		} else {
+		} else if len(playerCorrect[playerName]) > 0 {
 			playerCorrect[playerName] = playerCorrect[playerName][:len(playerCorrect[playerName])-1]
 		}
 
