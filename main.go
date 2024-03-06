@@ -122,7 +122,7 @@ func main() {
 		// clear all player buzz in times and increment question number
 		questionNumber += 1
 		playerTimes = make(map[string]time.Time)
-		return c.String(200, "Next")
+		return c.String(200, fmt.Sprintf("%v", questionNumber))
 	})
 
 	e.POST("/leaderboard", func(c echo.Context) error {

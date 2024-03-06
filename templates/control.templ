@@ -5,16 +5,18 @@ templ Control() {
         <h1>Control Panel</h1>
 
         <h4>Password</h4>
-        <input type="password" placeholder="Password" id="password" />
+        <input style="padding:0.25rem; margin:0.25rem;" type="password" placeholder="Password" id="password" />
+
+        <h4 style="padding:0.5rem; margin:0.25rem;">Question #<span id="qnum"></span></h4>
 
         <div style="display:flex;" id="control-box">
-            <div style="display:flex; flex-direction:column; margin:1rem; padding:1rem;">
+            <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
                 <h4>Update User Score</h4>
                 <input type="text" id="name" placeholder="Name" />
                 <input type="number" id="amount" placeholder="Amount" value="0" />
                 <button onclick="updateUserScore()">Update Score</button>
             </div>
-            <div style="display:flex; flex-direction:column; margin:1rem; padding:1rem;">
+            <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
                 <h4>Question Controls</h4>
                 <div style="display:flex; width:100%;">
                     <button style="flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:pink" onclick="clearTimes()">Clear</button>
@@ -62,7 +64,13 @@ templ Control() {
                 body: JSON.stringify({
                     password: document.getElementById('password').value
                 })
-            }).then(response => response.text()).then(data => {console.log(data)});
+            }).then(response => response.text()).then(data => {
+                questionNum = Number(data);
+                console.log(data)
+                if (questionNum) {
+                    document.getElementById('qnum').innerText = questionNum;
+                }
+            });
         }
     </script>
 }
