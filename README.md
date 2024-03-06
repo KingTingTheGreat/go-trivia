@@ -7,7 +7,8 @@ A live buzzer to play trivia on your local network
 -   Install [Go version 1.22 or higher](https://go.dev/doc/install)
 -   Install [templ](https://templ.guide/quick-start/installation/) and [air](https://github.com/cosmtrek/air)
 -   Create a .env file and add a password; PASSWORD="yourpasswordhere"
--   Run "templ generate" then "air"
+-   Run "templ generate" this should create *_templ.go files in the templates directory
+-   Run "air" or "go run main.go" to serve the application
 -   The application is now accessible on your local network at your device's IP on port 3000!
 
 ## How to use
