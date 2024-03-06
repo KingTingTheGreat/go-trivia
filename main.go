@@ -48,6 +48,17 @@ func main() {
 		defer Lock.Unlock()
 		return c.String(200, fmt.Sprintf("%v", questionNumber))
 	})
+	e.GET("/players", func(c echo.Context) error {
+		Lock.Lock()
+		defer Lock.Unlock()
+		players := make([]string, 0)
+		for playerName, _ := range playerScores {
+			players = append(players, playerName)
+		}
+		// sort alphabetically
+		sort.Strings(players)
+		return c.JSON(200, players)
+	})
 
 	e.POST("/check-in", func(c echo.Context) error {
 		json_map := make(map[string]interface{})

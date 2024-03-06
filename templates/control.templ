@@ -12,7 +12,8 @@ templ Control() {
         <div style="display:flex;" id="control-box">
             <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
                 <h4>Update User Score</h4>
-                <input type="text" id="name" placeholder="Name" />
+                <select name="players" id="players">
+                </select>
                 <input type="number" id="amount" placeholder="Amount" value="0" />
                 <button onclick="updateUserScore()">Update Score</button>
             </div>
@@ -33,6 +34,21 @@ templ Control() {
                 document.getElementById('qnum').innerText = questionNum;
             }
         });
+        function updatePlayers() {
+            fetch('/players').then(response => response.json()).then(data => {
+                const players = data;
+                const select = document.getElementById('players');
+                select.replaceChildren();
+                for (let i = 0; i < players.length; i++) {
+                    const option = document.createElement('option');
+                    option.value = players[i];
+                    option.innerText = players[i];
+                    select.appendChild(option);
+                }
+            });
+        }
+        updatePlayers();
+        setInterval(updatePlayers, 1000);
         function updateUserScore() {
             const password = document.getElementById('password').value;
             const name = document.getElementById('name').value;
