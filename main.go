@@ -130,6 +130,36 @@ func main() {
 		playerTimes = make(map[string]time.Time)
 		return c.String(200, fmt.Sprintf("%v", questionNumber))
 	})
+	e.POST("/prev", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return c.String(400, "Bad Request: Invalid JSON")
+		}
+
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// verify password
+		inputPassword, ok := json_map["password"].(string)
+		if !ok {
+			fmt.Println("No password")
+			return c.String(400, "Bad Request: No password")
+		}
+		if inputPassword != password {
+			fmt.Println("Unauthorized")
+			return c.String(401, "Unauthorized")
+		}
+		if questionNumber == 0 {
+			return c.String(200, fmt.Sprintf("%v", questionNumber))
+		}
+
+		// clear all player buzz in times and increment question number
+		questionNumber -= 1
+		playerTimes = make(map[string]time.Time)
+		return c.String(200, fmt.Sprintf("%v", questionNumber))
+	})
 
 	e.POST("/leaderboard", func(c echo.Context) error {
 		Lock.Lock()

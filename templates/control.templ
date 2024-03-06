@@ -19,9 +19,10 @@ templ Control() {
             <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
                 <h4>Question Controls</h4>
                 <div style="display:flex; width:100%;">
-                    <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:pink" onclick="clearTimes()">Clear</button>
+                    <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:pink" onclick="prev()">Prev</button>
                     <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgreen" onclick="next()">Next</button>
                 </div>
+                <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgray" onclick="clearTimes()">Clear</button>
             </div>
         </div>
     </main>
@@ -63,6 +64,23 @@ templ Control() {
         }
         function next() {
             fetch('/next', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    password: document.getElementById('password').value
+                })
+            }).then(response => response.text()).then(data => {
+                questionNum = Number(data);
+                console.log(data)
+                if (!isNaN(questionNum)) {
+                    document.getElementById('qnum').innerText = questionNum;
+                }
+            });
+        }
+        function prev() {
+            fetch('/prev', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
