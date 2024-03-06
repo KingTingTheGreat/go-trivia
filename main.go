@@ -49,6 +49,27 @@ func main() {
 		return c.String(200, fmt.Sprintf("%v", questionNumber))
 	})
 
+	e.POST("/check-in", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return err
+		}
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		playerName := json_map["name"].(string)
+
+		// set player score to 0 if exists
+		if _, ok := playerScores[playerName]; !ok {
+			playerScores[playerName] = 0
+			playerCorrect[playerName] = make([]string, 0)
+			lastUpdate[playerName] = time.Now()
+		}
+
+		return c.String(200, fmt.Sprintf("%v", questionNumber))
+	})
 	e.POST("/buzz", func(c echo.Context) error {
 		json_map := make(map[string]interface{})
 		err := json.NewDecoder(c.Request().Body).Decode(&json_map)

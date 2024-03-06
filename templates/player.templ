@@ -4,19 +4,29 @@ templ Player(playerName string) {
     <main style="display:flex; flex-direction:column; align-items:center;">
         <h1 style="padding:0.5rem; margin:1rem;">Welcome <span style="text-decoration:underline;" id="name">{ playerName }</span></h1>
         <div onclick="buzz()" id="buzz-button" style="user-select:none; cursor:pointer; font-size:4rem; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; width:14rem; height:14rem; border-radius:50%; background-color:pink; padding:3rem;">Buzz</div>
-        <script>
-            function buzz() {
-                const playerName = document.getElementById('name').innerText;
-                fetch('/buzz', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name: playerName })
-                }).then(response => response.text()).then(data => {
-                    console.log(data);
-                });
-            }
-        </script>
     </main>
+    <script>
+        const playerName = document.getElementById('name').innerText;
+        fetch('/check-in', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: playerName })
+        }).then(response => response.text()).then(data => {
+            console.log(data);
+        });
+        function buzz() {
+            const playerName = document.getElementById('name').innerText;
+            fetch('/buzz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: playerName })
+            }).then(response => response.text()).then(data => {
+                console.log(data);
+            });
+        }
+    </script>
 }
