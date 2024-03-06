@@ -23,7 +23,7 @@ func main() {
 	// players and their scores
 	playerScores := make(map[string]int64)
 	// players and how many questions they have answered correctly
-	playerCorrect := make(map[string][]int64)
+	playerCorrect := make(map[string][]string)
 	// players and the last time their score was updated
 	// leaderboard is sorted by score, then by last update
 	lastUpdate := make(map[string]time.Time)
@@ -64,7 +64,7 @@ func main() {
 		// give player a score if this is their first buzz
 		if _, ok := playerScores[playerName]; !ok {
 			playerScores[playerName] = 0
-			playerCorrect[playerName] = make([]int64, 0)
+			playerCorrect[playerName] = make([]string, 0)
 			lastUpdate[playerName] = time.Now()
 		}
 
@@ -171,7 +171,7 @@ func main() {
 		// list all players and their scores and correct answers
 		players := make([][]string, 0)
 		for playerName, score := range playerScores {
-			players = append(players, []string{playerName, fmt.Sprintf("%d", score), strings.Trim(strings.Join(strings.Fields(fmt.Sprint(playerCorrect[playerName])), ","), "[]")})
+			players = append(players, []string{playerName, fmt.Sprintf("%d", score), strings.Trim(strings.Join(playerCorrect[playerName], ","), "[]")})
 		}
 
 		return c.JSON(200, players)
@@ -226,9 +226,12 @@ func main() {
 
 		// update player correct
 		if amountInt > 0 {
-			playerCorrect[playerName] = append(playerCorrect[playerName], int64(questionNumber))
-		} else if len(playerCorrect[playerName]) > 0 {
-			playerCorrect[playerName] = playerCorrect[playerName][:len(playerCorrect[playerName])-1]
+			playerCorrect[playerName] = append(playerCorrect[playerName], fmt.Sprintf("%d", questionNumber))
+			// } else if len(playerCorrect[playerName]) > 0 {
+			// playerCorrect[playerName] = playerCorrect[playerName][:len(playerCorrect[playerName])-1]
+		} else {
+			playerCorrect[playerName] = append(playerCorrect[playerName], fmt.Sprintf("-%d", questionNumber))
+
 		}
 
 		return c.String(200, fmt.Sprintf("%v", playerScores[playerName]))
