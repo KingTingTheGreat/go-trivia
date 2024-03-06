@@ -1,135 +1,215 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/http"
-	"text/template"
+	"go-trivia/configs"
+	"go-trivia/controllers"
+	"sort"
+	"strconv"
+	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Message)
-var gameStarted = false
-var startTime time.Time
-
-type Message struct {
-	Type    string `json:"type"`
-	Message string `json:"message"`
-}
-
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer conn.Close()
-
-	clients[conn] = true
-
-	for {
-		var msg Message
-		err := conn.ReadJSON(&msg)
-		if err != nil {
-			fmt.Println(err)
-			delete(clients, conn)
-			break
-		}
-
-		switch msg.Type {
-		case "startGame":
-			if !gameStarted {
-				startTime = time.Now()
-				gameStarted = true
-				go countdown()
-			}
-		case "clicked":
-			if gameStarted {
-				duration := time.Since(startTime).Seconds()
-				broadcast <- Message{Type: "result", Message: fmt.Sprintf("%.2f seconds", duration)}
-				gameStarted = false
-			}
-		}
-	}
-}
-
-func countdown() {
-	time.Sleep(5 * time.Second) // Adjust the countdown duration as needed
-	broadcast <- Message{Type: "timeout", Message: "Time's up!"}
-	gameStarted = false
-}
-
-func handleMessages() {
-	for {
-		msg := <-broadcast
-		for client := range clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				fmt.Println(err)
-				client.Close()
-				delete(clients, client)
-			}
-		}
-	}
-}
-
-func home(w http.ResponseWriter, r *http.Request) {
-	homeTemplate.Execute(w, "ws://"+r.Host+"/ws")
-}
-
 func main() {
-	http.HandleFunc("/", home)
-	http.HandleFunc("/ws", handleConnections)
-	go handleMessages()
+	// prevent data races
+	Lock := &sync.Mutex{}
 
-	fmt.Println("Server running on :8080")
-	http.ListenAndServe(":8080", nil)
+	// players and when they first buzzed in this round
+	playerTimes := make(map[string]time.Time)
+	// players and their scores
+	playerScores := make(map[string]int64)
+	// players and the last time their score was updated
+	// leaderboard is sorted by score, then by last update
+	lastUpdate := make(map[string]time.Time)
+
+	questionNumber := 0
+	password := configs.Password()
+
+	e := echo.New()
+
+	e.GET("/", controllers.Home)
+
+	e.GET("/play/:name", controllers.Play)
+
+	e.GET("/leaderboard", controllers.Leaderboard)
+	e.GET("/buzzed-in", controllers.BuzzedIn)
+	e.GET("/host", controllers.Host)
+	e.GET("/control", controllers.Control)
+
+	e.POST("/buzz", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return err
+		}
+
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		playerName := json_map["name"].(string)
+
+		// player buzzed in
+		if _, ok := playerTimes[playerName]; !ok {
+			playerTimes[playerName] = time.Now()
+		}
+
+		// give player a score if this is their first buzz
+		if _, ok := playerScores[playerName]; !ok {
+			playerScores[playerName] = 0
+			lastUpdate[playerName] = time.Now()
+		}
+
+		return c.String(200, fmt.Sprintf("%v", questionNumber))
+	})
+
+	e.POST("/clear", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return c.String(400, "Bad Request: Invalid JSON")
+		}
+
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// verify password
+		inputPassword, ok := json_map["password"].(string)
+		if !ok {
+			fmt.Println("No password")
+			return c.String(400, "Bad Request: No password")
+		}
+		if inputPassword != password {
+			fmt.Println("Unauthorized")
+			return c.String(401, "Unauthorized")
+		}
+
+		// clear all player buzz in times
+		playerTimes = make(map[string]time.Time)
+		return c.String(200, "Clear")
+	})
+	e.POST("/next", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return c.String(400, "Bad Request: Invalid JSON")
+		}
+
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// verify password
+		inputPassword, ok := json_map["password"].(string)
+		if !ok {
+			fmt.Println("No password")
+			return c.String(400, "Bad Request: No password")
+		}
+		if inputPassword != password {
+			fmt.Println("Unauthorized")
+			return c.String(401, "Unauthorized")
+		}
+
+		// clear all player buzz in times and increment question number
+		questionNumber += 1
+		playerTimes = make(map[string]time.Time)
+		return c.String(200, "Next")
+	})
+
+	e.POST("/leaderboard", func(c echo.Context) error {
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// list of all players and their scores
+		playerWithScores := make([][]string, 0)
+		for playerName, score := range playerScores {
+			playerWithScores = append(playerWithScores, []string{playerName, fmt.Sprintf("%d", score)})
+		}
+
+		// sort players by score, then by last update time
+		sort.Slice(playerWithScores, func(i, j int) bool {
+			a := playerScores[playerWithScores[i][0]]
+			b := playerScores[playerWithScores[j][0]]
+			if a == b {
+				return lastUpdate[playerWithScores[i][0]].Before(lastUpdate[playerWithScores[j][0]])
+			}
+			return a > b
+		})
+
+		return c.JSON(200, playerWithScores)
+	})
+
+	e.POST("/buzzed-in", func(c echo.Context) error {
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// list all players and their buzz in times, in order of buzz in
+		players := make([][]string, 0)
+		for playerName, _ := range playerTimes {
+			players = append(players, []string{playerName, playerTimes[playerName].Format("03:04:05.000 PM")})
+		}
+		sort.Slice(players, func(i, j int) bool {
+			return playerTimes[players[i][0]].Before(playerTimes[players[j][0]])
+		})
+
+		return c.JSON(200, players)
+	})
+
+	e.PUT("/update-score", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return c.String(400, "Bad Request: Invalid JSON")
+		}
+
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// verify password
+		inputPassword, ok := json_map["password"].(string)
+		if !ok {
+			fmt.Println("No password")
+			return c.String(400, "Bad Request: No password")
+		}
+		if inputPassword != password {
+			fmt.Println("Unauthorized")
+			return c.String(401, "Unauthorized")
+		}
+		// verify playername and amount
+		playerName, ok := json_map["name"].(string)
+		if !ok {
+			fmt.Println("No name")
+			return c.String(400, "Bad Request: No name")
+		}
+		amount, ok := json_map["amount"].(string)
+		if !ok {
+			fmt.Println("No amount")
+			return c.String(400, "Bad Request: No amount")
+		}
+		amountInt, err := strconv.ParseInt(amount, 10, 64)
+		if err != nil {
+			fmt.Println("Error parsing amount")
+			return c.String(400, "Bad Request: Invalid amount")
+		}
+		oldScore, ok := playerScores[playerName]
+		if !ok {
+			fmt.Println("Player not found")
+			return c.String(400, "Bad Request: Player not found")
+		}
+
+		// update player score
+		playerScores[playerName] = oldScore + amountInt
+		lastUpdate[playerName] = time.Now()
+
+		return c.String(200, fmt.Sprintf("%v", playerScores[playerName]))
+	})
+
+	e.RouteNotFound("/*", controllers.NotFound)
+
+	e.Logger.Fatal(e.Start(":3000"))
 }
-
-var homeTemplate = template.Must(template.New("").Parse(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Click Game</title>
-    <script>
-        var socket = new WebSocket("{{.}}");
-
-        socket.onmessage = function (event) {
-            var msg = JSON.parse(event.data);
-            switch (msg.type) {
-                case "result":
-                    document.getElementById("result").innerHTML = "Your time: " + msg.message;
-                    break;
-                case "timeout":
-                    document.getElementById("result").innerHTML = "Game over - " + msg.message;
-                    break;
-            }
-        };
-
-        function startGame() {
-            var message = { type: "startGame" };
-            socket.send(JSON.stringify(message));
-        }
-
-        function clicked() {
-            var message = { type: "clicked" };
-            socket.send(JSON.stringify(message));
-        }
-    </script>
-</head>
-<body>
-    <h1>Click Game</h1>
-    <button onclick="startGame()">Start Game</button>
-    <button onclick="clicked()">Click Me!</button>
-    <div id="result"></div>
-</body>
-</html>
-`))
-

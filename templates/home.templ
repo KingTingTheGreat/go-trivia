@@ -1,0 +1,19 @@
+package templates
+
+templ Home() {
+    <main style="display:flex; flex-direction:column; align-items:center;">
+        <h1>Enter your name</h1>
+        <div style="width:fit;">
+            <input type="text" style="padding:1rem; margin:0.5rem; font-size:1.25rem;" id="name" placeholder="Name" />
+            <div onclick="start()" style="user-select:none; cursor:pointer; display:flex; flex-direction:column; justify-content:center; text-align:center; font-size:2rem; margin:0.5rem; border-radius:0.5rem; background-color:palegreen;">→</div>
+        </div>
+        <script>
+            function start() {
+                var name = document.getElementById('name').value;
+                if (name) {
+                    window.location.href = `/play/${name}`;
+                }
+            }
+        </script>
+    </main>
+}

@@ -1,0 +1,43 @@
+package templates
+
+templ Leaderboard() {
+    <div style="display:flex; flex-direction:column; align-items:center;">
+        <h1>Leaderboard</h1>
+        <table style="display:table; table-layout:auto;">
+            <thead>
+                <tr style="display:flex; flex:1;">
+                    <th style="display:inline-block; flex:1; padding:0.5rem; border-style:solid; border-width:2px;">Rank</th>
+                    <th style="display:inline-block; flex:1; padding:0.5rem; border-style:solid; border-width:2px;">Name</th>
+                    <th style="display:inline-block; flex:1; padding:0.5rem; border-style:solid; border-width:2px;">Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-data">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function updateLeaderboard() {
+            fetch('/leaderboard', {method:"POST"})
+                .then(response => response.json())
+                .then(data => {
+                    const leaderboardBody = document.getElementById('leaderboard-data');
+                    leaderboardBody.innerHTML = `
+                        ${data.map((userData, index) => 
+                            {
+                            const rank = index + 1;
+                            const color = rank === 1 ? "#d4af37" : rank === 2 ? "#c0c0c0" : rank === 3 ? "#cd7f32" : "";
+                            return (
+                                `<tr style="display:flex; flex:1;">
+                                    <td style="display:inline-block; text-align:center; padding:0.5rem; color:${color};">${rank}</td>
+                                    <td style="display:inline-block; text-align:center; padding:0.5rem;">${userData[0]}</td>
+                                    <td style="display:inline-block; text-align:center; padding:0.5rem;">${userData[1]}</td>
+                                </tr>`
+                            )}
+                        ).join('')}
+                    `;
+                });
+        }
+        updateLeaderboard();
+        setInterval(updateLeaderboard, 100);
+    </script>
+}

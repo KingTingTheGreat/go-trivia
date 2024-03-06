@@ -1,0 +1,27 @@
+package templates
+
+templ BuzzedIn() {
+    <div style="display:flex; flex-direction:column; align-items:center;">
+        <h1>Buzzed In</h1>
+        <div style="display:flex; flex-direction:column;" id="buzzed-in">
+        </div>
+    </div>
+    <script>
+        function updateBuzzedIn() {
+            fetch('/buzzed-in', {method:"POST"})
+                .then(response => response.json())
+                .then(data => {
+                    const leaderboardBody = document.getElementById('buzzed-in');
+                    leaderboardBody.innerHTML = `
+                        ${data.map((player) => 
+                                `<div style="display:flex; flex:1; cursor:pointer; background-color:#ccc; padding:0.25rem; margin:0.25rem; border-radius:0.25rem;">
+                                    <td style="display:inline-block; text-align:center; padding:0.5rem;">${player[0]} | ${player[1]}</td>
+                                </div>`
+                        ).join('')}
+                    `;
+                });
+        }
+        updateBuzzedIn();
+        setInterval(updateBuzzedIn, 100);
+    </script>
+}
