@@ -8,7 +8,7 @@ A live buzzer to play trivia on your local network
 - Run "templ generate" then "air"
 - The application is now accessible on your local network at your device's IP on port 3000!
 
-## Controls
+## How to use
 ### Players
 - Visit HostIP:3000 while on the same network
 - Enter your name and advance to the next page
