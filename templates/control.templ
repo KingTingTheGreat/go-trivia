@@ -1,7 +1,7 @@
 package templates
 
 templ Control() {
-    <main style="display:flex; flex-direction:column; align-items:center;">
+    <main style="display:flex; flex-direction:column; align-items:center">
         <h1>Control Panel</h1>
 
         <h4>Password</h4>
@@ -26,6 +26,12 @@ templ Control() {
         </div>
     </main>
     <script>
+        fetch('/question-number').then(response => response.text()).then(data => {
+            questionNum = Number(data);
+            if (!isNaN(questionNum)) {
+                document.getElementById('qnum').innerText = questionNum;
+            }
+        });
         function updateUserScore() {
             const password = document.getElementById('password').value;
             const name = document.getElementById('name').value;

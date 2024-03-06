@@ -43,6 +43,12 @@ func main() {
 	e.GET("/host", controllers.Host)
 	e.GET("/control", controllers.Control)
 
+	e.GET("/question-number", func(c echo.Context) error {
+		Lock.Lock()
+		defer Lock.Unlock()
+		return c.String(200, fmt.Sprintf("%v", questionNumber))
+	})
+
 	e.POST("/buzz", func(c echo.Context) error {
 		json_map := make(map[string]interface{})
 		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
