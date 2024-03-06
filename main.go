@@ -33,6 +33,8 @@ func main() {
 
 	e := echo.New()
 
+	e.Static("/", "public")
+
 	e.GET("/", controllers.Home)
 
 	e.GET("/play/:name", controllers.Play)

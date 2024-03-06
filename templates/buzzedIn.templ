@@ -6,12 +6,16 @@ templ BuzzedIn() {
         <div style="display:flex; flex-direction:column;" id="buzzed-in">
         </div>
     </div>
+    <audio id="audio" src="/buzzer.mp3"></audio>
     <script>
+        let numBuzzedIn = 0;
         function updateBuzzedIn() {
             fetch('/buzzed-in', {method:"POST"})
                 .then(response => response.json())
                 .then(data => {
                     const leaderboardBody = document.getElementById('buzzed-in');
+                    const emptyList = numBuzzedIn === 0;
+                    numBuzzedIn = data.length;
                     leaderboardBody.innerHTML = `
                         ${data.map((player) => 
                                 `<div style="display:flex; flex:1; cursor:pointer; background-color:#ccc; padding:0.25rem; margin:0.25rem; border-radius:0.25rem;">
@@ -19,6 +23,9 @@ templ BuzzedIn() {
                                 </div>`
                         ).join('')}
                     `;
+                    if (emptyList && numBuzzedIn > 0) {
+                        document.getElementById('audio').play();
+                    }
                 });
         }
         updateBuzzedIn();
