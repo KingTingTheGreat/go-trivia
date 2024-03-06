@@ -3,8 +3,16 @@ package templates
 templ BuzzedIn() {
     <div style="display:flex; flex-direction:column; align-items:center;">
         <h1>Buzzed In</h1>
-        <div style="display:flex; flex-direction:column;" id="buzzed-in">
-        </div>
+        <table style="display:table; table-layout:auto; border-collapse:collapse;">
+            <thead style="display:table-header-group;">
+                <tr style="display:table-row;">
+                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Name</th>
+                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Time</th>
+                </tr>
+            </thead>
+            <tbody id="buzzed-in" style="display:table-row-group;">
+            </tbody>
+        </table>
     </div>
     <audio id="audio" src="/buzzer.mp3"></audio>
     <script>
@@ -13,14 +21,15 @@ templ BuzzedIn() {
             fetch('/buzzed-in', {method:"POST"})
                 .then(response => response.json())
                 .then(data => {
-                    const leaderboardBody = document.getElementById('buzzed-in');
+                    const buzzedInBody = document.getElementById('buzzed-in');
                     const emptyList = numBuzzedIn === 0;
                     numBuzzedIn = data.length;
-                    leaderboardBody.innerHTML = `
+                    buzzedInBody.innerHTML = `
                         ${data.map((player) => 
-                                `<div style="display:flex; flex:1; cursor:pointer; background-color:#ccc; padding:0.25rem; margin:0.25rem; border-radius:0.25rem;">
-                                    <td style="display:inline-block; text-align:center; padding:0.5rem;">${player[0]} | ${player[1]}</td>
-                                </div>`
+                                `<tr style="display:table-row; padding:0.25rem; margin:0.25rem; border-radius:0.25rem;">
+                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[0]}</td>
+                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[1]}</td>
+                                </tr>`
                         ).join('')}
                     `;
                     if (emptyList && numBuzzedIn > 0) {
