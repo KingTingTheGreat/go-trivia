@@ -1,0 +1,45 @@
+package templates 
+
+templ Stats() {
+    <div style="display:flex; flex-direction:column; align-items:center;">
+        <h1>Player Stats</h1>
+        <table style="display:table; table-layout:auto; border-collapse:collapse;">
+            <thead style="display:table-header-group;">
+                <tr style="display:table-row;">
+                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Rank</th>
+                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Name</th>
+                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Score</th>
+                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Correct Answers</th>
+                </tr>
+            </thead>
+            <tbody id="stats-data" style="display:table-row-group;">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function updateLeaderboard() {
+            fetch('/stats', {method:"POST"})
+                .then(response => response.json())
+                .then(data => {
+                    const leaderboardBody = document.getElementById('stats-data');
+                    leaderboardBody.innerHTML = `
+                        ${data.map((userData, index) => 
+                            {
+                            const rank = index + 1;
+                            const color = rank === 1 ? "#d4af37" : rank === 2 ? "#c0c0c0" : rank === 3 ? "#cd7f32" : "";
+                            return (
+                                `<tr style="display:table-row;">
+                                    <td style="display:table-cell; text-align:center; padding:0.5rem; color:${color};">${rank}</td>
+                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${userData[0]}</td>
+                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${userData[1]}</td>
+                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${userData[2].length > 0 ? userData[2] : 'N/A'}</td>
+                                </tr>`
+                            )}
+                        ).join('')}
+                    `;
+                });
+        }
+        updateLeaderboard();
+        setInterval(updateLeaderboard, 100);
+    </script>
+}

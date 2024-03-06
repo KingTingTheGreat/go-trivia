@@ -7,6 +7,7 @@ import (
 	"go-trivia/controllers"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,6 +22,8 @@ func main() {
 	playerTimes := make(map[string]time.Time)
 	// players and their scores
 	playerScores := make(map[string]int64)
+	// players and how many questions they have answered correctly
+	playerCorrect := make(map[string][]int64)
 	// players and the last time their score was updated
 	// leaderboard is sorted by score, then by last update
 	lastUpdate := make(map[string]time.Time)
@@ -36,6 +39,7 @@ func main() {
 
 	e.GET("/leaderboard", controllers.Leaderboard)
 	e.GET("/buzzed-in", controllers.BuzzedIn)
+	e.GET("/stats", controllers.Stats)
 	e.GET("/host", controllers.Host)
 	e.GET("/control", controllers.Control)
 
@@ -60,6 +64,7 @@ func main() {
 		// give player a score if this is their first buzz
 		if _, ok := playerScores[playerName]; !ok {
 			playerScores[playerName] = 0
+			playerCorrect[playerName] = make([]int64, 0)
 			lastUpdate[playerName] = time.Now()
 		}
 
@@ -159,6 +164,19 @@ func main() {
 		return c.JSON(200, players)
 	})
 
+	e.POST("/stats", func(c echo.Context) error {
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// list all players and their scores and correct answers
+		players := make([][]string, 0)
+		for playerName, score := range playerScores {
+			players = append(players, []string{playerName, fmt.Sprintf("%d", score), strings.Trim(strings.Join(strings.Fields(fmt.Sprint(playerCorrect[playerName])), ","), "[]")})
+		}
+
+		return c.JSON(200, players)
+	})
+
 	e.PUT("/update-score", func(c echo.Context) error {
 		json_map := make(map[string]interface{})
 		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
@@ -205,6 +223,13 @@ func main() {
 		// update player score
 		playerScores[playerName] = oldScore + amountInt
 		lastUpdate[playerName] = time.Now()
+
+		// update player correct
+		if amountInt > 0 {
+			playerCorrect[playerName] = append(playerCorrect[playerName], int64(questionNumber))
+		} else {
+			playerCorrect[playerName] = playerCorrect[playerName][:len(playerCorrect[playerName])-1]
+		}
 
 		return c.String(200, fmt.Sprintf("%v", playerScores[playerName]))
 	})
