@@ -15,6 +15,7 @@ templ Control() {
                 <select name="players" id="players">
                 </select>
                 <input type="number" id="amount" placeholder="Amount" value="0" />
+                <button onclick="updatePlayers()">Refresh Players</button>
                 <button onclick="updateUserScore()">Update Score</button>
             </div>
             <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
@@ -48,7 +49,6 @@ templ Control() {
             });
         }
         updatePlayers();
-        setInterval(updatePlayers, 1000);
         function updateUserScore() {
             const password = document.getElementById('password').value;
             const name = document.getElementById('name').value;
