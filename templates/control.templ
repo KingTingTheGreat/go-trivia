@@ -27,7 +27,7 @@ templ Control() {
                     <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:pink" onclick="prev()">Prev</button>
                     <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgreen" onclick="next()">Next</button>
                 </div>
-                <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgray" onclick="clearTimes()">Clear</button>
+                <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgray" onclick="reserBuzzers()">Reset Buzzers</button>
             </div>
         </div>
         @Leaderboard()
@@ -78,7 +78,7 @@ templ Control() {
             });
             zeroAmount();
         }
-        function clearTimes() {
+        function resetBuzzers() {
             document.getElementById('password-error').style.opacity = 0;
             fetch('/clear', {
                 method: 'POST',
