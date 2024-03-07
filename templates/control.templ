@@ -12,7 +12,7 @@ templ Control() {
         <div style="display:flex;" id="control-box">
             <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
                 <h4>Update User Score</h4>
-                <select name="players" id="players">
+                <select name="players" id="players" onchange="zeroAmount()">
                 </select>
                 <input type="number" id="amount" placeholder="Amount" value="0" />
                 <button onclick="updatePlayers()">Refresh Players</button>
@@ -50,12 +50,13 @@ templ Control() {
             });
         }
         updatePlayers();
+        function zeroAmount() {
+            document.getElementById('amount').value = 0;
+        }
         function updateUserScore() {
             const password = document.getElementById('password').value;
-            const name = document.getElementById('name').value;
-            document.getElementById('name').value = '';
+            const name = document.getElementById('players').value;
             const amount = document.getElementById('amount').value;
-            document.getElementById('amount').value = 0;
             fetch('/update-score', {
                 method: 'PUT',
                 headers: {
@@ -67,6 +68,7 @@ templ Control() {
                     password: password
                 })
             }).then(response => response.text()).then(data => {console.log(data)});
+            zeroAmount();
         }
         function clearTimes() {
             fetch('/clear', {
