@@ -4,8 +4,11 @@ templ Control() {
     <main style="display:flex; flex-direction:column; align-items:center">
         <h1>Control Panel</h1>
 
-        <h4>Password</h4>
-        <input style="padding:0.25rem; margin:0.25rem;" type="password" placeholder="Password" id="password" />
+        <div>
+            <h4>Password</h4>
+            <input style="padding:0.25rem; margin:0.25rem;" type="password" placeholder="Password" id="password" />
+            <p id="password-error" style="color:red; font-size:0.8rem; opacity:0;">Invalid Password</p>
+        </div>
 
         <h4 style="padding:0.5rem; margin:0.25rem;">Question #<span id="qnum"></span></h4>
 
@@ -54,6 +57,7 @@ templ Control() {
             document.getElementById('amount').value = 0;
         }
         function updateUserScore() {
+            document.getElementById('password-error').style.opacity = 0;
             const password = document.getElementById('password').value;
             const name = document.getElementById('players').value;
             const amount = document.getElementById('amount').value;
@@ -67,10 +71,15 @@ templ Control() {
                     amount: amount,
                     password: password
                 })
-            }).then(response => response.text()).then(data => {console.log(data)});
+            }).then(response => response.status).then(data => {
+                if (data !== 200) {
+                    document.getElementById('password-error').style.opacity = 1;
+                }
+            });
             zeroAmount();
         }
         function clearTimes() {
+            document.getElementById('password-error').style.opacity = 0;
             fetch('/clear', {
                 method: 'POST',
                 headers: {
@@ -79,9 +88,14 @@ templ Control() {
                 body: JSON.stringify({
                     password: document.getElementById('password').value
                 })
-            }).then(response => response.text()).then(data => {console.log(data)});
+            }).then(response => response.status).then(data => {                
+                if (data !== 200) {
+                    document.getElementById('password-error').style.opacity = 1;
+                }
+            });
         }
         function next() {
+            document.getElementById('password-error').style.opacity = 0;
             fetch('/next', {
                 method: 'POST',
                 headers: {
@@ -90,15 +104,22 @@ templ Control() {
                 body: JSON.stringify({
                     password: document.getElementById('password').value
                 })
-            }).then(response => response.text()).then(data => {
+            }).then(response => {
+                if (response.status === 200) {
+                    return response.text();
+                } else {
+                    document.getElementById('password-error').style.opacity = 1;
+                    return NaN
+                }
+            }).then(data => {
                 questionNum = Number(data);
-                console.log(data)
                 if (!isNaN(questionNum)) {
                     document.getElementById('qnum').innerText = questionNum;
                 }
             });
         }
         function prev() {
+            document.getElementById('password-error').style.opacity = 0;
             fetch('/prev', {
                 method: 'POST',
                 headers: {
@@ -107,9 +128,15 @@ templ Control() {
                 body: JSON.stringify({
                     password: document.getElementById('password').value
                 })
-            }).then(response => response.text()).then(data => {
+            }).then(response => {
+                if (response.status === 200) {
+                    return response.text();
+                } else {
+                    document.getElementById('password-error').style.opacity = 1;
+                    return NaN
+                }
+            }).then(data => {
                 questionNum = Number(data);
-                console.log(data)
                 if (!isNaN(questionNum)) {
                     document.getElementById('qnum').innerText = questionNum;
                 }
