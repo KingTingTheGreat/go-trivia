@@ -27,6 +27,7 @@ templ Control() {
                 <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgray" onclick="clearTimes()">Clear</button>
             </div>
         </div>
+        @Leaderboard()
     </main>
     <script>
         fetch('/question-number').then(response => response.text()).then(data => {
