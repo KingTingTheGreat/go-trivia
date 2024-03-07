@@ -31,6 +31,12 @@ templ Control() {
             </div>
         </div>
         @Leaderboard()
+        <div style="display:flex; flex-direction:column;">
+            <h4>Remove Player</h4>
+            <select name="players" id="remove-players">
+            </select>
+            <button onclick="removePlayer()">Remove Player</button>
+        </div>
     </main>
     <script>
         fetch('/question-number').then(response => response.text()).then(data => {
@@ -43,12 +49,19 @@ templ Control() {
             fetch('/players').then(response => response.json()).then(data => {
                 const players = data;
                 const select = document.getElementById('players');
+                const removeSelect = document.getElementById('remove-players');
                 select.replaceChildren();
+                removeSelect.replaceChildren();
                 for (let i = 0; i < players.length; i++) {
                     const option = document.createElement('option');
                     option.value = players[i];
                     option.innerText = players[i];
                     select.appendChild(option);
+
+                    const removeOption = document.createElement('option');
+                    removeOption.value = players[i];
+                    removeOption.innerText = players[i];
+                    removeSelect.appendChild(removeOption);
                 }
             });
         }
@@ -113,5 +126,27 @@ templ Control() {
         function prev() {
             postBackend('/prev');
         }
+
+        function removePlayer() {
+            document.getElementById('password-error').style.opacity = 0;
+            const name = document.getElementById('remove-players').value;
+            fetch('/delete-player', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    password: document.getElementById('password').value
+                })
+            }).then(response => response.status).then(data => {
+                if (data === 200) {
+                    updatePlayers();
+                } else {
+                    document.getElementById('password-error').style.opacity = 1;
+                }
+            });
+            updatePlayers();
+        }   
     </script>
 }

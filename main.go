@@ -326,6 +326,52 @@ func main() {
 		return c.String(200, fmt.Sprintf("%v", playerScores[playerName]))
 	})
 
+	e.DELETE("/delete-player", func(c echo.Context) error {
+		json_map := make(map[string]interface{})
+		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+		if err != nil {
+			fmt.Println("Error decoding json")
+			return c.String(400, "Bad Request: Invalid JSON")
+		}
+
+		Lock.Lock()
+		defer Lock.Unlock()
+
+		// verify password
+		inputPassword, ok := json_map["password"].(string)
+		if !ok {
+			fmt.Println("No password")
+			return c.String(400, "Bad Request: No password")
+		}
+		if inputPassword != password {
+			fmt.Println("Unauthorized")
+			return c.String(401, "Unauthorized")
+		}
+
+		// verify playername
+		realPlayer, ok := json_map["name"].(string)
+		if !ok {
+			fmt.Println("No name")
+			return c.String(400, "Bad Request: No name")
+		}
+		playerName := strings.TrimSpace(realPlayer)
+		playerName = strings.ToLower(playerName)
+		// verify player exists
+		if _, ok := playerScores[playerName]; !ok {
+			fmt.Println("Player not found")
+			return c.String(400, "Bad Request: Player not found")
+		}
+
+		// delete player
+		delete(playerScores, playerName)
+		delete(playerCorrect, playerName)
+		delete(playerTimes, playerName)
+		delete(playerNames, playerName)
+		delete(lastUpdate, playerName)
+
+		return c.String(200, "Player deleted")
+	})
+
 	e.RouteNotFound("/*", controllers.NotFound)
 
 	e.Logger.Fatal(e.Start(":3000"))
