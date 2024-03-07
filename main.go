@@ -20,6 +20,8 @@ func main() {
 
 	// players and when they first buzzed in this round
 	playerTimes := make(map[string]time.Time)
+	// real username
+	playerNames := make(map[string]string)
 	// players and their scores
 	playerScores := make(map[string]int64)
 	// players and how many questions they have answered correctly
@@ -55,7 +57,7 @@ func main() {
 		defer Lock.Unlock()
 		players := make([]string, 0)
 		for playerName, _ := range playerScores {
-			players = append(players, playerName)
+			players = append(players, playerNames[playerName])
 		}
 		// sort alphabetically
 		sort.Strings(players)
@@ -72,7 +74,14 @@ func main() {
 		Lock.Lock()
 		defer Lock.Unlock()
 
-		playerName := json_map["name"].(string)
+		realPlayer := json_map["name"].(string)
+		playerName := strings.TrimSpace(realPlayer)
+		playerName = strings.ToLower(playerName)
+
+		// set player name to real name
+		if _, ok := playerNames[playerName]; !ok {
+			playerNames[playerName] = realPlayer
+		}
 
 		// set player score to 0 if exists
 		if _, ok := playerScores[playerName]; !ok {
@@ -94,7 +103,9 @@ func main() {
 		Lock.Lock()
 		defer Lock.Unlock()
 
-		playerName := json_map["name"].(string)
+		realPlayer := json_map["name"].(string)
+		playerName := strings.TrimSpace(realPlayer)
+		playerName = strings.ToLower(playerName)
 
 		// player buzzed in
 		if _, ok := playerTimes[playerName]; !ok {
@@ -106,6 +117,11 @@ func main() {
 			playerScores[playerName] = 0
 			playerCorrect[playerName] = make([]string, 0)
 			lastUpdate[playerName] = time.Now()
+		}
+
+		// store real name if not exists
+		if _, ok := playerNames[playerName]; !ok {
+			playerNames[playerName] = realPlayer
 		}
 
 		return c.String(200, fmt.Sprintf("%v", questionNumber))
@@ -202,7 +218,7 @@ func main() {
 		// list of all players and their scores
 		playerWithScores := make([][]string, 0)
 		for playerName, score := range playerScores {
-			playerWithScores = append(playerWithScores, []string{playerName, fmt.Sprintf("%d", score)})
+			playerWithScores = append(playerWithScores, []string{playerNames[playerName], fmt.Sprintf("%d", score)})
 		}
 
 		// sort players by score, then by last update time
@@ -225,7 +241,7 @@ func main() {
 		// list all players and their buzz in times, in order of buzz in
 		players := make([][]string, 0)
 		for playerName, _ := range playerTimes {
-			players = append(players, []string{playerName, playerTimes[playerName].Format("03:04:05.000 PM")})
+			players = append(players, []string{playerNames[playerName], playerTimes[playerName].Format("03:04:05.000 PM")})
 		}
 		sort.Slice(players, func(i, j int) bool {
 			return playerTimes[players[i][0]].Before(playerTimes[players[j][0]])
@@ -241,7 +257,7 @@ func main() {
 		// list all players and their scores and correct answers
 		players := make([][]string, 0)
 		for playerName, score := range playerScores {
-			players = append(players, []string{playerName, fmt.Sprintf("%d", score), strings.Trim(strings.Join(playerCorrect[playerName], ","), "[]")})
+			players = append(players, []string{playerNames[playerName], fmt.Sprintf("%d", score), strings.Trim(strings.Join(playerCorrect[playerName], ","), "[]")})
 		}
 
 		return c.JSON(200, players)
@@ -269,11 +285,14 @@ func main() {
 			return c.String(401, "Unauthorized")
 		}
 		// verify playername and amount
-		playerName, ok := json_map["name"].(string)
+		realPlayer, ok := json_map["name"].(string)
 		if !ok {
 			fmt.Println("No name")
 			return c.String(400, "Bad Request: No name")
 		}
+		playerName := strings.TrimSpace(realPlayer)
+		playerName = strings.ToLower(playerName)
+
 		amount, ok := json_map["amount"].(string)
 		if !ok {
 			fmt.Println("No amount")
