@@ -46,7 +46,7 @@ func main() {
 		}
 
 		// name
-		realPlayer = json_map["name"].(string)
+		realPlayer, _ = json_map["name"].(string)
 
 		// password
 		inputPassword, ok := json_map["password"].(string)
