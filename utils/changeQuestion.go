@@ -32,9 +32,12 @@ func ChangeQuestion(c echo.Context, inc bool) error {
 	}
 
 	// clear all player buzz in times
-	for _, player := range shared.PlayerData {
-		player.LastUpdate = time.Now()
+	for playerName, player := range shared.PlayerData {
+		player.BuzzIn = time.Time{}
+		shared.PlayerData[playerName] = player
 	}
+
+	shared.BuzzChan <- true
 
 	return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 }
