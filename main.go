@@ -12,19 +12,18 @@ func main() {
 	// static files
 	e.Static("/", "public")
 
-	// pages
+	// pages for players
 	e.GET("/", controllers.GetHome)
-
 	e.GET("/play/:name", controllers.GetPlay)
 
+	// pages displaying data
 	e.GET("/leaderboard", controllers.GetLeaderboard)
 	e.GET("/buzzed-in", controllers.GetBuzzedIn)
 	e.GET("/stats", controllers.GetStats)
 	e.GET("/host", controllers.GetHost)
-	e.GET("/control", controllers.GetControl)
 
-	e.GET("/question-number", controllers.GetQuestionNumber)
-	e.GET("/players", controllers.GetPlayers)
+	// host control page
+	e.GET("/control", controllers.GetControl)
 
 	// player actions
 	e.POST("/check-in", controllers.PostCheckIn)
@@ -37,10 +36,12 @@ func main() {
 	e.PUT("/update-score", controllers.PutUpdateScore)
 	e.DELETE("/player", controllers.DeletePlayer)
 
+	// data websockets / endpoints
 	e.GET("/leaderboard-ws", controllers.GetLeaderboardWs)
-
 	e.GET("/buzzed-ws", controllers.GetBuzzedInWs)
 	e.POST("/stats", controllers.PostStats)
+	e.GET("/question-number", controllers.GetQuestionNumber)
+	e.GET("/players", controllers.GetPlayers)
 
 	e.RouteNotFound("/*", controllers.GetNotFound)
 
