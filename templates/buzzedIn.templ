@@ -18,7 +18,7 @@ templ BuzzedIn() {
     <script>
         let numBuzzedIn = 0;
 
-        const buzzedInDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed`;
+        const buzzedInDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed-ws`;
         console.log(buzzedInDestination)
 
         const buzzedInSocket = new WebSocket(buzzedInDestination);

@@ -130,7 +130,7 @@ templ Control() {
         function removePlayer() {
             document.getElementById('password-error').style.opacity = 0;
             const name = document.getElementById('remove-players').value;
-            fetch('/delete-player', {
+            fetch('/player', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
