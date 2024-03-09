@@ -9,12 +9,13 @@ import (
 )
 
 func SendLeaderboard(conn *websocket.Conn) {
-	fmt.Println("sendLeaderboard")
+	fmt.Println("SendLeaderboard")
+
 	// list of all players
 	players := PlayersList()
 
 	shared.Lock.RLock()
-	// defer shared.Lock.RUnlock()
+	defer shared.Lock.RUnlock()
 
 	// sort players by score, then by last update time
 	sort.Slice(players, func(i, j int) bool {
@@ -23,8 +24,6 @@ func SendLeaderboard(conn *websocket.Conn) {
 		}
 		return players[i].Score > players[j].Score
 	})
-
-	shared.Lock.RUnlock()
 
 	// list of all players and their scores
 	playersWithScores := make([][]string, 0)

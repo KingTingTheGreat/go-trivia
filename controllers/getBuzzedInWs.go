@@ -11,7 +11,7 @@ import (
 func GetBuzzedInWs(c echo.Context) error {
 	conn, err := shared.Upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		fmt.Println("Error upgrading to websocket")
+		fmt.Println("Error upgrading to buzzed-in websocket")
 		return err
 	}
 	defer conn.Close()

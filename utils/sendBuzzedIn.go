@@ -9,7 +9,7 @@ import (
 )
 
 func SendBuzzedIn(conn *websocket.Conn) {
-	fmt.Println("send buzzed in")
+	fmt.Println("SendBuzzedIn")
 
 	// list of all players
 	players := PlayersList()

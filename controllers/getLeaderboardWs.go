@@ -22,7 +22,7 @@ func GetLeaderboardWs(c echo.Context) error {
 
 	// send when new data is available
 	for _ = range shared.LeaderboardChan {
-		fmt.Println("got leaderboardChan data")
+		fmt.Println("LeaderboardChan update")
 		go utils.SendLeaderboard(conn)
 	}
 
