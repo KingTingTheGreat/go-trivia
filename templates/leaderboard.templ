@@ -27,7 +27,7 @@ templ Leaderboard() {
 
         socket.addEventListener('message', (event) => {
             // update page with the new data
-            console.log('got data')
+            console.log('got leaderboard data')
             updateLeaderboardData(JSON.parse(event.data));
         });
 

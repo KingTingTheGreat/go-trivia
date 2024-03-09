@@ -29,6 +29,7 @@ templ BuzzedIn() {
 
         socket.addEventListener('message', (event) => {
             // update page with the new data
+            console.log('got buzzed-in data')
             updateBuzzedInData(JSON.parse(event.data));
         });
 
@@ -38,10 +39,8 @@ templ BuzzedIn() {
         });
 
         function updateBuzzedInData(data) {
-            const tableBody = document.getElementById("buzzed-in");
-
             // update the table
-            tableBody.innerHTML = `
+            document.getElementById("buzzed-in").innerHTML = `
                 ${data.map((player) => 
                         `<tr style="display:table-row; padding:0.25rem; margin:0.25rem; border-radius:0.25rem;">
                             <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[0]}</td>
