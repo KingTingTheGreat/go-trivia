@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"go-trivia/configs"
 	"go-trivia/controllers"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,6 +27,13 @@ type Player struct {
 func main() {
 	// prevent data races
 	Lock := &sync.Mutex{}
+
+	// websocket upgrader
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
 
 	// player data
 	playerData := make(map[string]Player)
@@ -327,7 +336,7 @@ func main() {
 
 		return c.JSON(200, playersWithScores)
 	})
-	e.POST("/buzzed-in", func(c echo.Context) error {
+	sendBuzzedIn := func(conn *websocket.Conn) {
 		// list of all players
 		players := playersList()
 
@@ -351,7 +360,26 @@ func main() {
 			playersWithBuzzIn = append(playersWithBuzzIn, []string{player.Name, player.BuzzIn.Format("03:04:05.000 PM")})
 		}
 
-		return c.JSON(200, playersWithBuzzIn)
+		err := conn.WriteJSON(playersWithBuzzIn)
+		if err != nil {
+			fmt.Println("Error writing to websocket")
+		}
+	}
+	e.GET("/buzzed-in", func(c echo.Context) error {
+		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+		if err != nil {
+			fmt.Println("Error upgrading to websocket")
+			return err
+		}
+		defer conn.Close()
+
+		// send initial list of players
+		// for {
+		sendBuzzedIn(conn)
+
+		// }
+
+		return nil
 	})
 	e.POST("/stats", func(c echo.Context) error {
 		// list of all players
