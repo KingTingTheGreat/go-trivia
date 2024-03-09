@@ -2,3 +2,4 @@ templates/*.txt
 templates/*_templ.go
 tmp
 .env
+todo.txt
