@@ -371,7 +371,7 @@ func main() {
 			fmt.Println("Error writing to websocket")
 		}
 	}
-	e.GET("/buzzed-in", func(c echo.Context) error {
+	e.GET("/buzzed", func(c echo.Context) error {
 		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
 			fmt.Println("Error upgrading to websocket")
