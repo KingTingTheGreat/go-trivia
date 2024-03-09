@@ -16,28 +16,43 @@ templ Leaderboard() {
         </table>
     </div>
     <script>
-        function updateLeaderboard() {
-            fetch('/leaderboard', {method:"POST"})
-                .then(response => response.json())
-                .then(data => {
-                    const leaderboardBody = document.getElementById('leaderboard-data');
-                    leaderboardBody.innerHTML = `
-                        ${data.map((userData, index) => 
-                            {
-                            const rank = index + 1;
-                            const color = rank === 1 ? "#d4af37" : rank === 2 ? "#c0c0c0" : rank === 3 ? "#cd7f32" : "";
-                            return (
-                                `<tr style="display:table-row;">
-                                    <td style="display:table-cell; text-align:center; padding:0.5rem; color:${color};">${rank}</td>
-                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${userData[0]}</td>
-                                    <td style="display:table-cell; text-align:center; padding:0.5rem;">${userData[1]}</td>
-                                </tr>`
-                            )}
-                        ).join('')}
-                    `;
-                });
+        const destination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/leaderboard-ws`;
+        console.log(destination)
+
+        const socket = new WebSocket(destination)
+
+        socket.addEventListener('open', (event) => {
+            console.log('WebSocket connection opened');
+        });
+
+        socket.addEventListener('message', (event) => {
+            // update page with the new data
+            console.log('got data')
+            updateLeaderboardData(JSON.parse(event.data));
+        });
+
+        socket.addEventListener('close', (event) => {
+            console.log('WebSocket connection closed');
+            document.getElementById("leaderboard-data").innerHTML = 'Unable to retrieve data';
+        });
+
+        function updateLeaderboardData(data) {
+            // update the table
+            document.getElementById("leaderboard-data").innerHTML = `
+                ${data.map((player, index) => {
+                    const rank = index + 1;
+                    const color = rank === 1 ? "#d4af37" : rank === 2 ? "#c0c0c0" : rank === 3 ? "#cd7f32" : "";
+                    return (
+                        `<tr style="display:table-row;">
+                            <td style="display:table-cell; text-align:center; padding:0.5rem; color:${color};">${rank}</td>
+                            <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[0]}</td>
+                            <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[1]}</td>
+                        </tr>`
+                    )
+                }
+
+                ).join('')}
+            `;
         }
-        updateLeaderboard();
-        setInterval(updateLeaderboard, 100);
     </script>
 }
