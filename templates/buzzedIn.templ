@@ -18,22 +18,22 @@ templ BuzzedIn() {
     <script>
         let numBuzzedIn = 0;
 
-        const destination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed`;
-        console.log(destination)
+        const buzzedInDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed`;
+        console.log(buzzedInDestination)
 
-        const socket = new WebSocket(destination);
+        const buzzedInSocket = new WebSocket(buzzedInDestination);
 
-        socket.addEventListener('open', (event) => {
+        buzzedInSocket.addEventListener('open', (event) => {
             console.log('WebSocket connection opened');
         });
 
-        socket.addEventListener('message', (event) => {
+        buzzedInSocket.addEventListener('message', (event) => {
             // update page with the new data
             console.log('got buzzed-in data')
             updateBuzzedInData(JSON.parse(event.data));
         });
 
-        socket.addEventListener('close', (event) => {
+        buzzedInSocket.addEventListener('close', (event) => {
             console.log('WebSocket connection closed');
             document.getElementById("buzzed-in").innerHTML = 'Unable to retrieve data';
         });

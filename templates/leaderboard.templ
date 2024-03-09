@@ -16,22 +16,22 @@ templ Leaderboard() {
         </table>
     </div>
     <script>
-        const destination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/leaderboard-ws`;
-        console.log(destination)
+        const leaderboardDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/leaderboard-ws`;
+        console.log(leaderboardDestination)
 
-        const socket = new WebSocket(destination)
+        const leaderboardSocket = new WebSocket(leaderboardDestination)
 
-        socket.addEventListener('open', (event) => {
+        leaderboardSocket.addEventListener('open', (event) => {
             console.log('WebSocket connection opened');
         });
 
-        socket.addEventListener('message', (event) => {
+        leaderboardSocket.addEventListener('message', (event) => {
             // update page with the new data
             console.log('got leaderboard data')
             updateLeaderboardData(JSON.parse(event.data));
         });
 
-        socket.addEventListener('close', (event) => {
+        leaderboardSocket.addEventListener('close', (event) => {
             console.log('WebSocket connection closed');
             document.getElementById("leaderboard-data").innerHTML = 'Unable to retrieve data';
         });

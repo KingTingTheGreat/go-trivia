@@ -1,95 +1,20 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"go-trivia/configs"
 	"go-trivia/controllers"
-	"net/http"
+	"go-trivia/shared"
+	"go-trivia/types"
+	"go-trivia/utils"
 	"sort"
-	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
 
-type Player struct {
-	Name             string
-	Score            int
-	CorrectQuestions []string
-	LastUpdate       time.Time
-	BuzzIn           time.Time
-}
-
 func main() {
-	// prevent data races
-	Lock := &sync.Mutex{}
-
-	// websocket upgrader
-	upgrader := websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-
-	// player data
-	playerData := make(map[string]Player)
-
-	questionNumber := 0
-	password := configs.Password()
-
-	parseJSON := func(c echo.Context) (string, bool, int64, error) {
-		var realPlayer string
-		var correctPassword bool
-		var amountInt int64
-
-		json_map := make(map[string]interface{})
-		err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-		if err != nil {
-			fmt.Println("Error decoding json")
-			return realPlayer, correctPassword, amountInt, err
-		}
-
-		// name
-		realPlayer, _ = json_map["name"].(string)
-
-		// password
-		inputPassword, ok := json_map["password"].(string)
-		if ok {
-			correctPassword = inputPassword == password
-		}
-
-		// amount
-		amount, ok := json_map["amount"].(string)
-		if ok {
-			amountInt, err = strconv.ParseInt(amount, 10, 64)
-			if err != nil {
-				fmt.Println("Error parsing amount")
-				return realPlayer, correctPassword, amountInt, err
-			}
-		}
-
-		return realPlayer, correctPassword, amountInt, nil
-	}
-	cleanName := func(name string) string {
-		return strings.ToLower(strings.TrimSpace(name))
-	}
-	playersList := func() []Player {
-		Lock.Lock()
-		defer Lock.Unlock()
-
-		players := make([]Player, 0)
-		for _, player := range playerData {
-			players = append(players, player)
-		}
-		return players
-	}
-
-	buzzChan := make(chan bool)
-
 	e := echo.New()
 
 	// static files
@@ -107,96 +32,114 @@ func main() {
 	e.GET("/control", controllers.Control)
 
 	e.GET("/question-number", func(c echo.Context) error {
-		Lock.Lock()
-		defer Lock.Unlock()
-		return c.String(200, fmt.Sprintf("%v", questionNumber))
+		shared.Lock.RLock()
+		defer shared.Lock.RUnlock()
+		return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 	})
 	e.GET("/players", func(c echo.Context) error {
-		Lock.Lock()
-		defer Lock.Unlock()
+		shared.Lock.RLock()
+		defer shared.Lock.RUnlock()
 		players := make([]string, 0)
-		for _, player := range playerData {
+		for _, player := range shared.PlayerData {
 			players = append(players, player.Name)
 		}
 		// sort alphabetically without case sensitivity
 		sort.Slice(players, func(i, j int) bool {
-			return cleanName(players[i]) < cleanName(players[j])
+			return utils.CleanName(players[i]) < utils.CleanName(players[j])
 		})
 		return c.JSON(200, players)
 	})
 
 	// player actions
 	e.POST("/check-in", func(c echo.Context) error {
-		realPlayer, _, _, err := parseJSON(c)
+		shared.Lock.Lock()
+		defer shared.Lock.Unlock()
+
+		realPlayer, _, _, err := utils.ParseJSON(c)
 		if err != nil {
 			fmt.Println("Error decoding json")
 			return err
 		}
-		Lock.Lock()
-		defer Lock.Unlock()
 
-		playerName := cleanName(realPlayer)
+		playerName := utils.CleanName(realPlayer)
+		fmt.Printf("got player: %s\n", playerName)
 
 		// create new player if not exists
-		if _, ok := playerData[playerName]; !ok {
-			playerData[playerName] = Player{
+		if _, ok := shared.PlayerData[playerName]; !ok {
+			fmt.Println("creating new player")
+			shared.PlayerData[playerName] = types.Player{
 				Name:             realPlayer,
 				Score:            0,
 				CorrectQuestions: make([]string, 0),
 				LastUpdate:       time.Now(),
 				BuzzIn:           time.Time{},
 			}
+			fmt.Println("check in sending to leaderboard")
+			shared.LeaderboardChan <- true
+
 		}
 
-		return c.String(200, fmt.Sprintf("%v", questionNumber))
+		return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 	})
 	e.POST("/buzz", func(c echo.Context) error {
-		realPlayer, _, _, err := parseJSON(c)
+		fmt.Println("post buzz")
+
+		shared.Lock.Lock()
+		defer shared.Lock.Unlock()
+
+		fmt.Println("post buzz got lock")
+
+		realPlayer, _, _, err := utils.ParseJSON(c)
 		if err != nil {
 			fmt.Println("Error decoding json")
 			return err
 		}
 
-		Lock.Lock()
-		defer Lock.Unlock()
+		playerName := utils.CleanName(realPlayer)
 
-		playerName := cleanName(realPlayer)
-
-		var player Player
-		player, ok := playerData[playerName]
+		var player types.Player
+		player, ok := shared.PlayerData[playerName]
 		if ok {
+			fmt.Println("existing player")
 			// if existing player
 			if player.BuzzIn.IsZero() {
+				fmt.Println("first buzz in")
 				// prevent buzzing in again
 				player.BuzzIn = time.Now()
 			}
 		} else {
+			fmt.Println("new player")
 			// create new player if not exists
-			player = Player{
+			player = types.Player{
 				Name:             realPlayer,
 				Score:            0,
 				CorrectQuestions: make([]string, 0),
 				LastUpdate:       time.Now(),
 				BuzzIn:           time.Now(),
 			}
+			fmt.Println("created player")
+			shared.LeaderboardChan <- true
+			fmt.Println("sent data to leaderboardChan")
 		}
-		playerData[playerName] = player
+		fmt.Println("setting player data...")
+		shared.PlayerData[playerName] = player
 
-		buzzChan <- true
+		fmt.Println("sending data to BuzzChan")
+		shared.BuzzChan <- true
 
-		return c.String(200, fmt.Sprintf("%v", questionNumber))
+		return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 	})
 
 	// host actions
 	e.POST("/clear", func(c echo.Context) error {
-		_, correctPassword, _, err := parseJSON(c)
+		shared.Lock.Lock()
+		defer shared.Lock.Unlock()
+
+		_, correctPassword, _, err := utils.ParseJSON(c)
 		if err != nil {
 			fmt.Println("Error decoding json")
 			return err
 		}
-
-		Lock.Lock()
-		defer Lock.Unlock()
 
 		// verify password
 		if !correctPassword {
@@ -206,24 +149,21 @@ func main() {
 
 		fmt.Println("Clear")
 		// clear all player buzz in times
-		for playerName, player := range playerData {
+		for playerName, player := range shared.PlayerData {
 			player.BuzzIn = time.Time{}
-			playerData[playerName] = player
+			shared.PlayerData[playerName] = player
 		}
 
-		buzzChan <- true
+		shared.BuzzChan <- true
 
 		return c.String(200, "Clear")
 	})
 	changeQuestion := func(c echo.Context, inc bool) error {
-		_, correctPassword, _, err := parseJSON(c)
+		_, correctPassword, _, err := utils.ParseJSON(c)
 		if err != nil {
 			fmt.Println("Error decoding json")
 			return c.String(400, "Bad Request: Invalid JSON")
 		}
-
-		Lock.Lock()
-		defer Lock.Unlock()
 
 		// verify password
 		if !correctPassword {
@@ -231,19 +171,22 @@ func main() {
 			return c.String(401, "Unauthorized")
 		}
 
+		shared.Lock.Lock()
+		defer shared.Lock.Unlock()
+
 		// increment or decrement question number
 		if inc {
-			questionNumber += 1
+			shared.QuestionNumber += 1
 		} else {
-			questionNumber -= 1
+			shared.QuestionNumber -= 1
 		}
 
 		// clear all player buzz in times
-		for _, player := range playerData {
+		for _, player := range shared.PlayerData {
 			player.LastUpdate = time.Now()
 		}
 
-		return c.String(200, fmt.Sprintf("%v", questionNumber))
+		return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 	}
 	e.POST("/next", func(c echo.Context) error {
 		return changeQuestion(c, true)
@@ -252,7 +195,7 @@ func main() {
 		return changeQuestion(c, false)
 	})
 	e.PUT("/update-score", func(c echo.Context) error {
-		realPlayer, correctPassword, amountInt, err := parseJSON(c)
+		realPlayer, correctPassword, amountInt, err := utils.ParseJSON(c)
 		if err != nil {
 			fmt.Println("Error decoding json")
 			return c.String(400, "Bad Request: Invalid JSON")
@@ -265,12 +208,12 @@ func main() {
 		}
 
 		// verify playername and amount
-		playerName := cleanName(realPlayer)
+		playerName := utils.CleanName(realPlayer)
 
-		Lock.Lock()
-		defer Lock.Unlock()
+		shared.Lock.Lock()
+		defer shared.Lock.Unlock()
 
-		player, ok := playerData[playerName]
+		player, ok := shared.PlayerData[playerName]
 		if !ok {
 			fmt.Println("Player not found")
 			return c.String(400, "Bad Request: Player not found")
@@ -286,24 +229,23 @@ func main() {
 
 		// update player correct questions
 		if amountInt > 0 {
-			player.CorrectQuestions = append(player.CorrectQuestions, fmt.Sprintf("%d", questionNumber))
+			player.CorrectQuestions = append(player.CorrectQuestions, fmt.Sprintf("%d", shared.QuestionNumber))
 		} else {
-			player.CorrectQuestions = append(player.CorrectQuestions, fmt.Sprintf("-%d", questionNumber))
+			player.CorrectQuestions = append(player.CorrectQuestions, fmt.Sprintf("-%d", shared.QuestionNumber))
 		}
 
-		playerData[playerName] = player
+		shared.PlayerData[playerName] = player
+
+		shared.LeaderboardChan <- true
 
 		return c.String(200, fmt.Sprintf("%v", player.Score))
 	})
 	e.DELETE("/delete-player", func(c echo.Context) error {
-		realPlayer, correctPassword, _, err := parseJSON(c)
+		realPlayer, correctPassword, _, err := utils.ParseJSON(c)
 		if err != nil {
 			fmt.Println("Error decoding json")
 			return c.String(400, "Bad Request: Invalid JSON")
 		}
-
-		Lock.Lock()
-		defer Lock.Unlock()
 
 		// verify password
 		if !correctPassword {
@@ -311,23 +253,32 @@ func main() {
 			return c.String(401, "Unauthorized")
 		}
 
+		shared.Lock.Lock()
+		defer shared.Lock.Unlock()
+
 		// verify player exists
-		playerName := cleanName(realPlayer)
-		if _, ok := playerData[playerName]; !ok {
+		playerName := utils.CleanName(realPlayer)
+		if _, ok := shared.PlayerData[playerName]; !ok {
 			fmt.Println("Player not found")
 			return c.String(400, "Bad Request: Player not found")
 		}
 
 		// delete player
-		delete(playerData, playerName)
+		delete(shared.PlayerData, playerName)
+
+		shared.LeaderboardChan <- true
 
 		return c.String(200, "Player deleted")
 	})
 
 	// game information
-	e.POST("/leaderboard", func(c echo.Context) error {
+	sendLeaderboard := func(conn *websocket.Conn) {
+		fmt.Println("sendLeaderboard")
 		// list of all players
-		players := playersList()
+		players := utils.PlayersList()
+
+		shared.Lock.RLock()
+		// defer shared.Lock.RUnlock()
 
 		// sort players by score, then by last update time
 		sort.Slice(players, func(i, j int) bool {
@@ -337,17 +288,47 @@ func main() {
 			return players[i].Score > players[j].Score
 		})
 
+		shared.Lock.RUnlock()
+
 		// list of all players and their scores
 		playersWithScores := make([][]string, 0)
 		for _, player := range players {
 			playersWithScores = append(playersWithScores, []string{player.Name, fmt.Sprintf("%d", player.Score)})
 		}
 
-		return c.JSON(200, playersWithScores)
+		err := conn.WriteJSON(playersWithScores)
+		if err != nil {
+			fmt.Println("Error writing to leaderboard websocket")
+		}
+	}
+	e.GET("/leaderboard-ws", func(c echo.Context) error {
+		conn, err := shared.Upgrader.Upgrade(c.Response(), c.Request(), nil)
+		if err != nil {
+			fmt.Println("Error upgrading to leaderboard websocket")
+			return err
+		}
+		defer conn.Close()
+
+		// send initial list of players
+		fmt.Println("sending initial leaderboard")
+		sendLeaderboard(conn)
+
+		// send when new data is available
+		for _ = range shared.LeaderboardChan {
+			fmt.Println("got leaderboardChan data")
+			go sendLeaderboard(conn)
+		}
+
+		return nil
 	})
 	sendBuzzedIn := func(conn *websocket.Conn) {
+		fmt.Println("send buzzed in")
+
 		// list of all players
-		players := playersList()
+		players := utils.PlayersList()
+
+		shared.Lock.RLock()
+		defer shared.Lock.RUnlock()
 
 		// sort players by buzz in time, then alphabetically
 		sort.Slice(players, func(i, j int) bool {
@@ -375,7 +356,7 @@ func main() {
 		}
 	}
 	e.GET("/buzzed", func(c echo.Context) error {
-		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+		conn, err := shared.Upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
 			fmt.Println("Error upgrading to websocket")
 			return err
@@ -383,18 +364,23 @@ func main() {
 		defer conn.Close()
 
 		// send initial list of players
+		fmt.Println("sending initial buzzed in")
 		sendBuzzedIn(conn)
 
 		// send when new data is available
-		for _ = range buzzChan {
-			sendBuzzedIn(conn)
+		for _ = range shared.BuzzChan {
+			fmt.Println("BuzzChan update")
+			go sendBuzzedIn(conn)
 		}
 
 		return nil
 	})
 	e.POST("/stats", func(c echo.Context) error {
 		// list of all players
-		players := playersList()
+		players := utils.PlayersList()
+
+		shared.Lock.RLock()
+		defer shared.Lock.RUnlock()
 
 		// sort players by score, then by last update time
 		sort.Slice(players, func(i, j int) bool {
