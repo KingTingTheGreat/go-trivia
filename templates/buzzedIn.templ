@@ -29,7 +29,7 @@ templ BuzzedIn() {
 
         socket.addEventListener('message', (event) => {
             // update page with the new data
-            updateData(JSON.parse(event.data));
+            updateBuzzedInData(JSON.parse(event.data));
         });
 
         socket.addEventListener('close', (event) => {
@@ -37,7 +37,7 @@ templ BuzzedIn() {
             document.getElementById("buzzed-in").innerHTML = 'Unable to retrieve data';
         });
 
-        function updateData(data) {
+        function updateBuzzedInData(data) {
             const tableBody = document.getElementById("buzzed-in");
 
             // update the table
