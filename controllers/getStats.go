@@ -7,6 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Stats(c echo.Context) error {
+func GetStats(c echo.Context) error {
 	return render(c, http.StatusOK, templates.Stats(), "Stats | Trivia")
 }

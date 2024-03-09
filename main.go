@@ -21,15 +21,15 @@ func main() {
 	e.Static("/", "public")
 
 	// pages
-	e.GET("/", controllers.Home)
+	e.GET("/", controllers.GetHome)
 
-	e.GET("/play/:name", controllers.Play)
+	e.GET("/play/:name", controllers.GetPlay)
 
-	e.GET("/leaderboard", controllers.Leaderboard)
-	e.GET("/buzzed-in", controllers.BuzzedIn)
-	e.GET("/stats", controllers.Stats)
-	e.GET("/host", controllers.Host)
-	e.GET("/control", controllers.Control)
+	e.GET("/leaderboard", controllers.GetLeaderboard)
+	e.GET("/buzzed-in", controllers.GetBuzzedIn)
+	e.GET("/stats", controllers.GetStats)
+	e.GET("/host", controllers.GetHost)
+	e.GET("/control", controllers.GetControl)
 
 	e.GET("/question-number", func(c echo.Context) error {
 		shared.Lock.RLock()
@@ -399,7 +399,7 @@ func main() {
 		return c.JSON(200, playersWithStats)
 	})
 
-	e.RouteNotFound("/*", controllers.NotFound)
+	e.RouteNotFound("/*", controllers.GetNotFound)
 
 	e.Logger.Fatal(e.Start(":3000"))
 }

@@ -7,6 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Control(c echo.Context) error {
+func GetControl(c echo.Context) error {
 	return render(c, http.StatusOK, templates.Control(), "Control | Trivia")
 }

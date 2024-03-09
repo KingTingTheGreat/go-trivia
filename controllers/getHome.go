@@ -7,6 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Home(c echo.Context) error {
+func GetHome(c echo.Context) error {
 	return render(c, http.StatusOK, templates.Home(), "Trivia")
 }

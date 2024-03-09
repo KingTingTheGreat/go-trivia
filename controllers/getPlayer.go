@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Play(c echo.Context) error {
+func GetPlay(c echo.Context) error {
 	name := c.Param("name")
 	return render(c, http.StatusOK, templates.Player(name), fmt.Sprintf("%s | Trivia", name))
 }
