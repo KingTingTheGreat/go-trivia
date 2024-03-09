@@ -35,6 +35,7 @@ templ BuzzedIn() {
 
         socket.addEventListener('close', (event) => {
             console.log('WebSocket connection closed');
+            document.getElementById("buzzed-in").innerHTML = 'Unable to retrieve data';
         });
 
         function updateData(data) {
