@@ -88,6 +88,8 @@ func main() {
 		return players
 	}
 
+	buzzChan := make(chan bool)
+
 	e := echo.New()
 
 	// static files
@@ -176,6 +178,8 @@ func main() {
 			}
 		}
 		playerData[playerName] = player
+
+		buzzChan <- true
 
 		return c.String(200, fmt.Sprintf("%v", questionNumber))
 	})
@@ -374,10 +378,12 @@ func main() {
 		defer conn.Close()
 
 		// send initial list of players
-		// for {
 		sendBuzzedIn(conn)
 
-		// }
+		// send when new data is available
+		for _ = range buzzChan {
+			sendBuzzedIn(conn)
+		}
 
 		return nil
 	})
