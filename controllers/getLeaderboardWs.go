@@ -32,7 +32,8 @@ func GetLeaderboardWs(c echo.Context) error {
 
 	// send initial list of players
 	fmt.Println("sending initial leaderboard")
-	utils.SendLeaderboard(conn)
+	// utils.SendLeaderboard(conn)
+	broadcastLeaderboard()
 
 	// send when new data is available
 	for _ = range shared.LeaderboardChan {

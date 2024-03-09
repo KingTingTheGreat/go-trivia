@@ -32,7 +32,8 @@ func GetBuzzedInWs(c echo.Context) error {
 
 	// send initial list of players
 	fmt.Println("sending initial buzzed in")
-	utils.SendBuzzedIn(conn)
+	// utils.SendBuzzedIn(conn)
+	broadcastBuzzedIn()
 
 	// send when new data is available
 	for _ = range shared.BuzzChan {
