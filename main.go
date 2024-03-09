@@ -166,7 +166,10 @@ func main() {
 		player, ok := playerData[playerName]
 		if ok {
 			// if existing player
-			player.BuzzIn = time.Now()
+			if player.BuzzIn.IsZero() {
+				// prevent buzzing in again
+				player.BuzzIn = time.Now()
+			}
 		} else {
 			// create new player if not exists
 			player = Player{
