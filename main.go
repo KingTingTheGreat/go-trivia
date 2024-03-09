@@ -208,6 +208,8 @@ func main() {
 			playerData[playerName] = player
 		}
 
+		buzzChan <- true
+
 		return c.String(200, "Clear")
 	})
 	changeQuestion := func(c echo.Context, inc bool) error {
