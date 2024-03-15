@@ -17,6 +17,7 @@ templ BuzzedIn() {
     <audio id="audio" src="/buzzer.mp3"></audio>
     <script>
         let numBuzzedIn = 0;
+        const audio = document.getElementById('audio');
 
         const buzzedInDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed-ws`;
         console.log(buzzedInDestination)
@@ -39,6 +40,8 @@ templ BuzzedIn() {
         });
 
         function updateBuzzedInData(data) {
+            if (numBuzzedIn === 0 && data.length > 0) audio.play();
+            numBuzzedIn = data.length;
             // update the table
             document.getElementById("buzzed-in").innerHTML = `
                 ${data.map((player) => 
