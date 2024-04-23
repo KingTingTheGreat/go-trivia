@@ -1,21 +1,20 @@
 package templates
 
 templ BuzzedIn() {
-    <div style="display:flex; flex-direction:column; align-items:center;">
-        <h1>Buzzed In</h1>
-        <table style="display:table; table-layout:auto; border-collapse:collapse;">
-            <thead style="display:table-header-group;">
-                <tr style="display:table-row;">
-                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Name</th>
-                    <th style="display:table-cell; padding:0.5rem; border-style:solid; border-width:2px;">Time</th>
-                </tr>
-            </thead>
-            <tbody id="buzzed-in" style="display:table-row-group;">
-            </tbody>
-        </table>
-    </div>
-    <audio id="audio" src="/buzzer.mp3"></audio>
-    <script>
+	<div class="flex flex-col items-center">
+		<h1>Buzzed In</h1>
+		<table>
+			<thead>
+				<tr>
+					<th class="p-2 border-solid border-2">Name</th>
+					<th class="p-2 border-solid border-2">Time</th>
+				</tr>
+			</thead>
+			<tbody id="buzzed-in"></tbody>
+		</table>
+	</div>
+	<audio id="audio" src="/buzzer.mp3"></audio>
+	<script>
         let numBuzzedIn = 0;
         const audio = document.getElementById('audio');
 
@@ -45,9 +44,9 @@ templ BuzzedIn() {
             // update the table
             document.getElementById("buzzed-in").innerHTML = `
                 ${data.map((player) => 
-                        `<tr style="display:table-row; padding:0.25rem; margin:0.25rem; border-radius:0.25rem;">
-                            <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[0]}</td>
-                            <td style="display:table-cell; text-align:center; padding:0.5rem;">${player[1]}</td>
+                        `<tr class="border-black border-2">
+                            <td class="text-center p-2 border-2 border-black">${player[0]}</td>
+                            <td class="text-center p-2">${player[1]}</td>
                         </tr>`
                 ).join('')}
             `;

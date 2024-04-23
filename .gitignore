@@ -3,3 +3,4 @@ templates/*_templ.go
 tmp
 .env
 todo.txt
+node_modules

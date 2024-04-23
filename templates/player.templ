@@ -1,32 +1,32 @@
 package templates
 
 templ Player(playerName string) {
-    <main style="display:flex; flex-direction:column; align-items:center;">
-        <h1 style="padding:0.5rem; margin:1rem;">Welcome <span style="text-decoration:underline;" id="name">{ playerName }</span></h1>
-        <div onclick="buzz()" id="buzz-button" style="user-select:none; cursor:pointer; font-size:4rem; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; width:14rem; height:14rem; border-radius:50%; background-color:pink; padding:3rem;">Buzz</div>
-    </main>
-    <script>
-        const playerName = document.getElementById('name').innerText;
-        fetch('/check-in', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name: playerName })
-        }).then(response => response.text()).then(data => {
-            console.log(data);
-        });
-        function buzz() {
-            const playerName = document.getElementById('name').innerText;
-            fetch('/buzz', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name: playerName })
-            }).then(response => response.text()).then(data => {
-                console.log(data);
-            });
-        }
-    </script>
+	<main class="flex flex-col items-center">
+		<h1 class="p-2 m-4">Welcome <span class="underline" id="name">{ playerName }</span></h1>
+		<div onclick="buzz()" id="buzz-button" class="bg-rose-200 p-6 w-56 h-56 select-none cursor-pointer flex flex-col justify-center items-center text-center text-6xl rounded-full border-2 active:border-solid active:border-black active:bg-red-400 transition-all">Buzz</div>
+	</main>
+	<script>
+		const playerName = document.getElementById('name').innerText;
+		fetch('/check-in', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		body: JSON.stringify({ name: playerName })
+		}).then(response => response.text()).then(data => {
+			console.log(data);
+		});
+		function buzz() {
+			const playerName = document.getElementById('name').innerText;
+			fetch('/buzz', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ name: playerName })
+			}).then(response => response.text()).then(data => {
+				console.log(data);
+			});
+		}
+	</script>
 }

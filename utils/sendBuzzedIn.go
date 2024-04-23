@@ -39,6 +39,6 @@ func SendBuzzedIn(conn *websocket.Conn) {
 
 	err := conn.WriteJSON(playersWithBuzzIn)
 	if err != nil {
-		fmt.Println("Error writing to websocket")
+		fmt.Println("Error writing to websocket", err)
 	}
 }

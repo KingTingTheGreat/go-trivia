@@ -1,44 +1,39 @@
 package templates
 
 templ Control() {
-    <main style="display:flex; flex-direction:column; align-items:center">
-        <h1>Control Panel</h1>
-
-        <div>
-            <h4>Password</h4>
-            <input style="padding:0.25rem; margin:0.25rem;" type="password" placeholder="Password" id="password" />
-            <p id="password-error" style="color:red; font-size:0.8rem; opacity:0;">Invalid Password</p>
-        </div>
-
-        <h4 style="padding:0.5rem; margin:0.25rem;">Question #<span id="qnum"></span></h4>
-
-        <div style="display:flex;" id="control-box">
-            <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
-                <h4>Update User Score</h4>
-                <select name="players" id="players" onchange="zeroAmount()">
-                </select>
-                <input type="number" id="amount" placeholder="Amount" value="0" />
-                <button onclick="updatePlayers()">Refresh Players</button>
-                <button onclick="updateUserScore()">Update Score</button>
-            </div>
-            <div style="display:flex; flex-direction:column; margin:0.5rem; padding:0.75rem;">
-                <h4>Question Controls</h4>
-                <div style="display:flex; width:100%;">
-                    <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:pink" onclick="prev()">Prev</button>
-                    <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgreen" onclick="next()">Next</button>
-                </div>
-                <button style="cursor:pointer; flex:1; margin:0.5rem; padding:0.5rem; width:fit; background-color:lightgray" onclick="resetBuzzers()">Reset Buzzers</button>
-            </div>
-        </div>
-        @Leaderboard()
-        <div style="display:flex; flex-direction:column;">
-            <h4>Remove Player</h4>
-            <select name="players" id="remove-players">
-            </select>
-            <button onclick="removePlayer()">Remove Player</button>
-        </div>
-    </main>
-    <script>
+	<main class="flex flex-col items-center p-2">
+		<h1>Control Panel</h1>
+		<div>
+			<h4>Password</h4>
+			<input class="m-1 p-1 border-2 border-black" type="password" placeholder="Password" id="password"/>
+			<p id="password-error" style="color:red; font-size:0.8rem; opacity:0;">Invalid Password</p>
+		</div>
+		<h4 class="p-2 m-1">Question #<span id="qnum"></span></h4>
+		<div class="flex flex-col sm:flex-row">
+			<div class="flex flex-col m-2 p-3">
+				<h4>Update User Score</h4>
+				<select class="border-2 border-black p-1" name="players" id="players" onchange="zeroAmount()"></select>
+				<input class="border-2 border-black p-1" type="number" id="amount" placeholder="Amount" value="0"/>
+				<button onclick="updatePlayers()">Refresh Players</button>
+				<button onclick="updateUserScore()">Update Score</button>
+			</div>
+			<div class="flex flex-col m-2 p-3">
+				<h4>Question Controls</h4>
+				<div class="flex w-full">
+					<button class="cursor-pointer flex-1 m-2 p-2 w-fit bg-rose-200" onclick="prev()">Prev</button>
+					<button class="cursor-pointer flex-1 m-2 p-2 w-fit bg-green-300" onclick="next()">Next</button>
+				</div>
+				<button class="cursor-pointer m-2 p-2 w-fit bg-stone-300 flex-1" onclick="resetBuzzers()">Reset Buzzers</button>
+			</div>
+		</div>
+		@Leaderboard()
+		<div class="flex flex-col">
+			<h4>Remove Player</h4>
+			<select class="border-2 border-black p-1" name="players" id="remove-players"></select>
+			<button class="border-2 border-black p-1" onclick="removePlayer()">Remove Player</button>
+		</div>
+	</main>
+	<script>
         fetch('/question-number').then(response => response.text()).then(data => {
             questionNum = Number(data);
             if (!isNaN(questionNum)) {
