@@ -20,6 +20,10 @@ templ Leaderboard() {
 	const connectLeaderboard = () => {
 	    const leaderboardSocket = new WebSocket(leaderboardDestination)
 
+	    leaderboardSocket.onopen = function(e) {
+		console.log('leaderboardSocket connected');
+	    }
+
 	    leaderboardSocket.onmessage = function(e) {
 		updateLeaderboardData(JSON.parse(e.data));
 	    }
