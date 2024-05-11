@@ -43,9 +43,9 @@ templ Leaderboard() {
                     const color = rank === 1 ? "#d4af37" : rank === 2 ? "#c0c0c0" : rank === 3 ? "#cd7f32" : "";
                     return (
                         `<tr>
-                            <td class="text-center p-2" style="color: ${color};">${rank}</td>
-                            <td class="text-center p-2">${player[0]}</td>
-                            <td class="text-center p-2">${player[1]}</td>
+                            <td class="text-center p-2 border-2" style="color: ${color};">${rank}</td>
+                            <td class="text-center p-2 border-2">${player[0]}</td>
+                            <td class="text-center p-2 border-2">${player[1]}</td>
                         </tr>`
                     )
                 }
