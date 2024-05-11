@@ -16,27 +16,24 @@ templ Leaderboard() {
 	</div>
 	<script>
         const leaderboardDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/leaderboard-ws`;
-        console.log(leaderboardDestination)
 
-        const leaderboardSocket = new WebSocket(leaderboardDestination)
+	const connectLeaderboard = () => {
+	    const leaderboardSocket = new WebSocket(leaderboardDestination)
 
-        leaderboardSocket.addEventListener('open', (event) => {
-            console.log('WebSocket connection opened');
-        });
+	    leaderboardSocket.onmessage = function(e) {
+		updateLeaderboardData(JSON.parse(e.data));
+	    }
 
-        leaderboardSocket.addEventListener('message', (event) => {
-            // update page with the new data
-            console.log('got leaderboard data')
-            updateLeaderboardData(JSON.parse(event.data));
-        });
+	    leaderboardSocket.onclose = function(e) {
+		setTimeout(() => {connectLeaderboard(), 100});
+	    }
+	}
 
-        leaderboardSocket.addEventListener('close', (event) => {
-            console.log('WebSocket connection closed');
-            document.getElementById("leaderboard-data").innerHTML = 'Unable to retrieve data';
-        });
+	connectLeaderboard();
 
         function updateLeaderboardData(data) {
             // update the table
+	    console.log(data);
             document.getElementById("leaderboard-data").innerHTML = `
                 ${data.map((player, index) => {
                     const rank = index + 1;

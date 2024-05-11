@@ -21,22 +21,17 @@ templ BuzzedIn() {
         const buzzedInDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed-ws`;
         console.log(buzzedInDestination)
 
-        const buzzedInSocket = new WebSocket(buzzedInDestination);
+	const connectBuzzedIn = () => {
+	    const buzzedInSocket = new WebSocket(buzzedInDestination);
 
-        buzzedInSocket.addEventListener('open', (event) => {
-            console.log('WebSocket connection opened');
-        });
+	    buzzedInSocket.onmessage = function(e) {
+		updateBuzzedInData(JSON.parse(e.data));
+	    }
 
-        buzzedInSocket.addEventListener('message', (event) => {
-            // update page with the new data
-            console.log('got buzzed-in data')
-            updateBuzzedInData(JSON.parse(event.data));
-        });
-
-        buzzedInSocket.addEventListener('close', (event) => {
-            console.log('WebSocket connection closed');
-            document.getElementById("buzzed-in").innerHTML = 'Unable to retrieve data';
-        });
+	    buzzedInSocket.onclose = function(e) {
+		setTimeout(() => {connectBuzzedIn(), 100})
+	    }
+	}
 
         function updateBuzzedInData(data) {
             if (numBuzzedIn === 0 && data.length > 0) audio.play();
