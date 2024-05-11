@@ -19,4 +19,5 @@ var (
 	QuestionNumber  = 0
 	BuzzChan        = make(chan bool)
 	LeaderboardChan = make(chan bool)
+	PlayersChan = make(chan bool)
 )

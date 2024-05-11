@@ -40,6 +40,7 @@ func main() {
 	// data websockets / endpoints
 	e.GET("/leaderboard-ws", controllers.GetLeaderboardWs)
 	e.GET("/buzzed-ws", controllers.GetBuzzedInWs)
+	e.GET("/players-ws", controllers.GetPlayersWs)
 	e.POST("/stats", controllers.PostStats)
 	e.GET("/question-number", controllers.GetQuestionNumber)
 	e.GET("/players", controllers.GetPlayers)
