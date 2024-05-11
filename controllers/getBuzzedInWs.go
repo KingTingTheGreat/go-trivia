@@ -36,19 +36,20 @@ func GetBuzzedInWs(c echo.Context) error {
 	// broadcastBuzzedIn()
 
 	// send when new data is available
-	for _ = range shared.BuzzChan {
-		fmt.Println("BuzzChan update")
-		go broadcastBuzzedIn()
+	for {
+		select {
+		case <- shared.BuzzChan:
+			fmt.Println("BuzzChan update")
+			go broadcastBuzzedIn()
+		}
 	}
-
-	return nil
 }
 
 func broadcastBuzzedIn() {
 	buzzedInLock.Lock()
 	defer buzzedInLock.Unlock()
 
-	for conn, _ := range buzzedInConnections {
+	for conn := range buzzedInConnections {
 		go utils.SendBuzzedIn(conn)
 	}
 }

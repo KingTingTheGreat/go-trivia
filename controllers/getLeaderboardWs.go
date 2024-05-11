@@ -36,19 +36,20 @@ func GetLeaderboardWs(c echo.Context) error {
 	// broadcastLeaderboard()
 
 	// send when new data is available
-	for _ = range shared.LeaderboardChan {
-		fmt.Println("LeaderboardChan update")
-		go broadcastLeaderboard()
+	for {
+		select {
+		case <- shared.LeaderboardChan:
+			fmt.Println("LeaderboardChan update")
+			go broadcastLeaderboard()
+		}
 	}
-
-	return nil
 }
 
 func broadcastLeaderboard() {
 	leaderboardLock.Lock()
 	defer leaderboardLock.Unlock()
 
-	for conn, _ := range leaderboardConnections {
+	for conn := range leaderboardConnections {
 		go utils.SendLeaderboard(conn)
 	}
 }
