@@ -20,25 +20,7 @@ templ BuzzedIn() {
 
         const buzzedInDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/buzzed-ws`;
 
-	const connectBuzzedIn = () => {
-	    const buzzedInSocket = new WebSocket(buzzedInDestination);
-
-	    buzzedInSocket.onopen = (e) => {
-		console.log('buzzedInSocket connected');
-	    }
-
-	    buzzedInSocket.onmessage = function(e) {
-		updateBuzzedInData(JSON.parse(e.data));
-	    }
-
-	    buzzedInSocket.onclose = function(e) {
-		setTimeout(() => {connectBuzzedIn(), 100})
-	    }
-	}
-
-	connectBuzzedIn();
-
-        function updateBuzzedInData(data) {
+        const updateBuzzedInData = (data) => {
             if (numBuzzedIn === 0 && data.length > 0) audio.play();
             numBuzzedIn = data.length;
             // update the table
@@ -51,5 +33,7 @@ templ BuzzedIn() {
                 ).join('')}
             `;
         }
+
+	connectWS(buzzedInDestination, updateBuzzedInData);
     </script>
 }

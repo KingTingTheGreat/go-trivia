@@ -17,25 +17,7 @@ templ Leaderboard() {
 	<script>
         const leaderboardDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/leaderboard-ws`;
 
-	const connectLeaderboard = () => {
-	    const leaderboardSocket = new WebSocket(leaderboardDestination)
-
-	    leaderboardSocket.onopen = function(e) {
-		console.log('leaderboardSocket connected');
-	    }
-
-	    leaderboardSocket.onmessage = function(e) {
-		updateLeaderboardData(JSON.parse(e.data));
-	    }
-
-	    leaderboardSocket.onclose = function(e) {
-		setTimeout(() => {connectLeaderboard(), 100});
-	    }
-	}
-
-	connectLeaderboard();
-
-        function updateLeaderboardData(data) {
+	const updateLeaderboardData = (data) => {
             // update the table
 	    console.log(data);
             document.getElementById("leaderboard-data").innerHTML = `
@@ -54,5 +36,7 @@ templ Leaderboard() {
                 ).join('')}
             `;
         }
+
+	connectWS(leaderboardDestination, updateLeaderboardData);
     </script>
 }
