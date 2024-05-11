@@ -44,9 +44,9 @@ templ BuzzedIn() {
             // update the table
             document.getElementById("buzzed-in").innerHTML = `
                 ${data.map((player) => 
-                        `<tr class="border-black border-2">
-                            <td class="text-center p-2 border-2 border-black">${player[0]}</td>
-                            <td class="text-center p-2">${player[1]}</td>
+                        `<tr class="border-2">
+                            <td class="text-center p-2 border-2">${player[0]}</td>
+                            <td class="text-center p-2 border-2">${player[1]}</td>
                         </tr>`
                 ).join('')}
             `;
