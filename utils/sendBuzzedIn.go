@@ -29,7 +29,7 @@ func SendBuzzedIn(conn *websocket.Conn) {
 	})
 
 	// list of all players and their buzz in times
-	playersWithBuzzIn := make([][]string, len(players))
+	playersWithBuzzIn := make([][]string, 0)
 	for _, player := range players {
 		if player.BuzzIn.IsZero() {
 			continue

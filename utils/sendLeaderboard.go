@@ -27,8 +27,8 @@ func SendLeaderboard(conn *websocket.Conn) {
 
 	// list of all players and their scores
 	playersWithScores := make([][]string, len(players))
-	for _, player := range players {
-		playersWithScores = append(playersWithScores, []string{player.Name, fmt.Sprintf("%d", player.Score)})
+	for i, player := range players {
+		playersWithScores[i] = []string{player.Name, fmt.Sprintf("%d", player.Score)}
 	}
 
 	err := conn.WriteJSON(playersWithScores)
