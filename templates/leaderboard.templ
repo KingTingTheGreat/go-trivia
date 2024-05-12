@@ -19,7 +19,6 @@ templ Leaderboard() {
 
 	const updateLeaderboardData = (data) => {
             // update the table
-	    console.log(data);
             document.getElementById("leaderboard-data").innerHTML = `
                 ${data.map((player, index) => {
                     const rank = index + 1;
