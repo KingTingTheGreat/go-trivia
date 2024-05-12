@@ -34,7 +34,9 @@ func DeletePlayer(c echo.Context) error {
 	// delete player
 	delete(shared.PlayerData, playerName)
 
-	shared.LeaderboardChan <- true
+	go func() { shared.LeaderboardChan <- true }()
+	go func() { shared.BuzzChan <- true }()
+	go func() { shared.PlayersChan <- true }()
 
 	return c.String(200, "Player deleted")
 }

@@ -47,14 +47,14 @@ func PostBuzz(c echo.Context) error {
 			BuzzIn:           time.Now(),
 		}
 		fmt.Println("created player")
-		shared.LeaderboardChan <- true
+		go func() { shared.LeaderboardChan <- true }()
 		fmt.Println("sent data to leaderboardChan")
 	}
 	fmt.Println("setting player data...")
 	shared.PlayerData[playerName] = player
 
 	fmt.Println("sending data to BuzzChan")
-	shared.BuzzChan <- true
+	go func() { shared.BuzzChan <- true }()
 
 	return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 }

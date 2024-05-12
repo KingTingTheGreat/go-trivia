@@ -37,7 +37,7 @@ func ChangeQuestion(c echo.Context, inc bool) error {
 		shared.PlayerData[playerName] = player
 	}
 
-	shared.BuzzChan <- true
+	go func() { shared.BuzzChan <- true }()
 
 	return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))
 }

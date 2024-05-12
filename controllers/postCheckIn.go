@@ -34,8 +34,8 @@ func PostCheckIn(c echo.Context) error {
 			BuzzIn:           time.Time{},
 		}
 		fmt.Println("check in sending to leaderboard")
-		shared.LeaderboardChan <- true
-		shared.PlayersChan <- true
+		go func() { shared.LeaderboardChan <- true }()
+		go func() { shared.PlayersChan <- true }()
 	}
 
 	return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))

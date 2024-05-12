@@ -51,7 +51,7 @@ func PutUpdateScore(c echo.Context) error {
 
 	shared.PlayerData[playerName] = player
 
-	shared.LeaderboardChan <- true
+	go func() { shared.LeaderboardChan <- true }()
 
 	return c.String(200, fmt.Sprintf("%v", player.Score))
 }

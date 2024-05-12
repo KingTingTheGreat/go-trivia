@@ -32,7 +32,7 @@ func PostClear(c echo.Context) error {
 		shared.PlayerData[playerName] = player
 	}
 
-	shared.BuzzChan <- true
+	go func() { shared.BuzzChan <- true }()
 
 	return c.String(200, "Clear")
 }
