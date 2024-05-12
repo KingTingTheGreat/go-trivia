@@ -35,7 +35,7 @@ func PostCheckIn(c echo.Context) error {
 		}
 		fmt.Println("check in sending to leaderboard")
 		shared.LeaderboardChan <- true
-
+		shared.PlayersChan <- true
 	}
 
 	return c.String(200, fmt.Sprintf("%v", shared.QuestionNumber))

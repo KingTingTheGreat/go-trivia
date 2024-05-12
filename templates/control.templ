@@ -14,7 +14,6 @@ templ Control() {
 				<h4>Update User Score</h4>
 				<select class="border-2 border-black p-1" name="players" id="players" onchange="zeroAmount()"></select>
 				<input class="border-2 border-black p-1" type="number" id="amount" placeholder="Amount" value="0"/>
-				<button onclick="updatePlayers()">Refresh Players</button>
 				<button onclick="updateUserScore()">Update Score</button>
 			</div>
 			<div class="flex flex-col m-2 p-3">
@@ -40,52 +39,36 @@ templ Control() {
                 document.getElementById('qnum').innerText = questionNum;
             }
         });
-        function updatePlayers() {
-            fetch('/players').then(response => response.json()).then(data => {
-                const players = data;
-                const select = document.getElementById('players');
-                const removeSelect = document.getElementById('remove-players');
-                select.replaceChildren();
-                removeSelect.replaceChildren();
-                for (let i = 0; i < players.length; i++) {
-                    const option = document.createElement('option');
-                    option.value = players[i];
-                    option.innerText = players[i];
-                    select.appendChild(option);
 
-                    const removeOption = document.createElement('option');
-                    removeOption.value = players[i];
-                    removeOption.innerText = players[i];
-                    removeSelect.appendChild(removeOption);
-                }
-            });
-        }
-        updatePlayers();
+        const playersDestination = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/players-ws`;
+
+	const updatePlayersList = (data) => {
+	    const playersSelect = document.getElementById("players")
+	    playersSelect.replaceChildren();
+	    for (let i = 0; i < data.length; i++) {
+		const option = document.createElement('option');
+		option.value = data[i];
+		option.innerText = data[i];
+		playersSelect.appendChild(option);
+	    }
+	}
+
+	const updateRemovePlayers = (data) => {
+	    const removeSelect = document.getElementById("remove-players");
+	    removeSelect.replaceChildren();
+	    for (let i = 0; i < data.length; i++) {
+		const option = document.createElement('option');
+		option.value = data[i];
+		option.innerText = data[i];
+		removeSelect.appendChild(option);
+	    }
+	}
+
+	connectWS(playersDestination, updatePlayersList);
+	connectWS(playersDestination, updateRemovePlayers);
+
         function zeroAmount() {
             document.getElementById('amount').value = 0;
-        }
-
-        function updateUserScore() {
-            document.getElementById('password-error').style.opacity = 0;
-            const password = document.getElementById('password').value;
-            const name = document.getElementById('players').value;
-            const amount = document.getElementById('amount').value;
-            fetch('/update-score', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: name,
-                    amount: amount,
-                    password: password
-                })
-            }).then(response => response.status).then(data => {
-                if (data !== 200) {
-                    document.getElementById('password-error').style.opacity = 1;
-                }
-            });
-            zeroAmount();
         }
 
         function postBackend(route) {
@@ -141,7 +124,6 @@ templ Control() {
                     document.getElementById('password-error').style.opacity = 1;
                 }
             });
-            updatePlayers();
         }   
     </script>
 }

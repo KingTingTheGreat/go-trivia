@@ -19,7 +19,7 @@ func SendPlayers(conn *websocket.Conn) {
 		return players[i].Name < players[j].Name
 	})
 
-	playerNames := make([]string, len(players))
+	playerNames := make([]string, 0)
 	for _, player := range players {
 		playerNames = append(playerNames, player.Name)
 	}
