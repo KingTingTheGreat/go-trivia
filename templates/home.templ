@@ -7,7 +7,8 @@ templ Home() {
 			<input type="text" class="p-4 m-2 border-2 border-black rounded-lg" id="name" placeholder="Name"/>
 			<div id="go" onclick="start()" tabindex="0" class="bg-green-300 flex flex-col justify-center text-center text-4xl m-2 select-none cursor-pointer rounded-lg">→</div>
 		</div>
-		<script>
+	</main>
+	<script>
             function start() {
                 var name = document.getElementById('name').value;
                 if (name) {
@@ -15,5 +16,4 @@ templ Home() {
                 }
             }
         </script>
-	</main>
 }
