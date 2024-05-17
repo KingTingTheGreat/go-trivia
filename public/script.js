@@ -5,5 +5,5 @@ const connectWS = (endpoint, func) => {
 
 	socket.onmessage = (e) => { func(JSON.parse(e.data)) };
 
-	socket.onclose = () => { setTimeout(() => {connectWS(endpoint), 100}) };
+	socket.onclose = () => { func([]); setTimeout(() => {connectWS(endpoint), 100}) };
 }
