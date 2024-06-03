@@ -124,6 +124,24 @@ templ Control() {
                     document.getElementById('password-error').style.opacity = 1;
                 }
             });
-        }   
+        }
+
+	function updateUserScore() {
+	    document.getElementById('password-error').style.opacity = 0;
+	    fetch('/update-score', {
+		body: JSON.stringify({
+		    name: document.getElementById("players").value, 
+		    amount: document.getElementById("amount").value, 
+		    password: document.getElementById("password").value
+		}),
+		method: "PUT"
+	    }).then(response => response.status).then(data => {
+		if (data === 200) {
+		    document.getElementById('amount').value = 0;
+		} else if (data === 401) {
+		    document.getElementById('password-error').style.opacity = 1;
+		}
+	})
+	}
     </script>
 }
